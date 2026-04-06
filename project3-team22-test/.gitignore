@@ -1,0 +1,21 @@
+# Environment files — never commit these
+.env
+.env.local
+.env.production
+
+# Java build artifacts
+target/
+*.class
+*.jar
+
+# Node
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Vite build output
+client/dist/
+
+# OS junk
+.DS_Store
+Thumbs.db

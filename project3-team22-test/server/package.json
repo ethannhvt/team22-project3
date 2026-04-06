@@ -1,0 +1,21 @@
+{
+  "name": "dragon-boba-server",
+  "version": "1.0.0",
+  "description": "Dragon Boba POS API Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "nodemailer": "^8.0.4",
+    "pg": "^8.13.0",
+    "twilio": "^5.13.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

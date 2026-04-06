@@ -1,0 +1,248 @@
+/* ============================================
+   Cashier View — Replicates the Swing POS UI
+   Distinct from customer: functional/dense,
+   keyboard-and-mouse desktop interface
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.cashier-login {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+.cashier-login__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+}
+.cashier-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: white;
+  padding: 28px 36px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  min-width: 280px;
+}
+.cashier-login__form label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+}
+.cashier-login__form input {
+  padding: 6px 8px;
+  font-size: 1rem;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+}
+.cashier-login__form button {
+  padding: 8px;
+  font-size: 1rem;
+  background: #d4d4d4;
+  border: 1px solid #999;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.cashier-login__form button:hover { background: #c0c0c0; }
+.cashier-login__error {
+  color: red;
+  font-size: 0.85rem;
+}
+
+/* ── Main Cashier Layout ── */
+.cashier {
+  height: 100vh;
+  display: flex;
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+/* Center panel */
+.cashier__center {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+}
+
+/* Categories 3-col grid (mirrors Swing GridLayout(0,3,10,10)) */
+.cashier__category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+.cashier__cat-btn {
+  height: 80px;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #e8e8e8;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cashier__cat-btn:hover { background: #d0d0d0; }
+.cashier__cat-btn:active { background: #b8b8b8; }
+
+/* Items 3-col grid */
+.cashier__items-container { padding: 10px; }
+.cashier__items-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.cashier__item-btn {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e8e8e8;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  gap: 4px;
+  transition: background 0.1s;
+}
+.cashier__item-btn:hover { background: #d0d0d0; }
+.cashier__item-btn--back { background: #c8c8c8; font-weight: bold; }
+.cashier__item-name { font-weight: 500; text-align: center; }
+.cashier__item-price { color: #333; }
+
+/* Customization panel */
+.cashier__customize {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.cashier__customize-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.cashier__customize-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cashier__customize-row label {
+  min-width: 90px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.cashier__customize-row select {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 0.95rem;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  background: white;
+}
+.cashier__item-total {
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.cashier__customize-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.cashier__customize-actions button {
+  padding: 8px 24px;
+  font-size: 0.95rem;
+  background: #e8e8e8;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cashier__customize-actions button:hover { background: #d0d0d0; }
+.cashier__add-btn { background: #b8ddb8 !important; }
+.cashier__add-btn:hover { background: #a0cca0 !important; }
+
+/* Right sidebar — Order Summary (mirrors Swing 300px EAST panel) */
+.cashier__sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #aaa;
+  background: white;
+}
+.cashier__sidebar-title {
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 8px 10px;
+  border-bottom: 1px solid #ccc;
+  background: #f5f5f5;
+  text-align: center;
+}
+.cashier__order-log {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  background: white;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+.cashier__sidebar-footer {
+  border-top: 1px solid #ccc;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cashier__total {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: right;
+  padding-right: 4px;
+}
+.cashier__sidebar-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cashier__checkout-btn {
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #a8e6b0;
+  border: 1px solid #88c888;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cashier__checkout-btn:hover { background: #90d898; }
+.cashier__logout-btn {
+  padding: 10px;
+  font-size: 0.95rem;
+  background: #f5a0a0;
+  border: 1px solid #d88888;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cashier__logout-btn:hover { background: #e88888; }
