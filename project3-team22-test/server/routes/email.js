@@ -20,11 +20,17 @@ router.post('/notify', (req, res) => {
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,        // TLS (STARTTLS), not SSL
+    requireTLS: true,
     auth: {
       user: gmailUser,
       pass: gmailPass,
     },
+    connectionTimeout: 30000,   // 30s to connect
+    greetingTimeout: 30000,     // 30s for greeting
+    socketTimeout: 30000,       // 30s for socket
   });
 
   // Wait 5 seconds (simulate preparation time — change to 300000 for 5 real minutes)
