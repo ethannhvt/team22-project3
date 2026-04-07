@@ -21,6 +21,17 @@ function getCategoryIcon(category) {
   return categoryIcons[category] || '🍵'
 }
 
+// Convert item name to image filename slug
+// e.g. "Brown Sugar Milk Tea" → "/drinks/brown-sugar-milk-tea.jpg"
+function getDrinkImage(itemName) {
+  const slug = itemName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
+    .trim()
+    .replace(/\s+/g, '-')            // spaces to hyphens
+  return `/drinks/${slug}.jpg`
+}
+
 // Customization options
 const SUGAR_LEVELS = ['0%', '25%', '50%', '75%', '100%']
 const ICE_LEVELS = ['No Ice', 'Less Ice', 'Regular Ice', 'Extra Ice']
@@ -474,8 +485,20 @@ export default function CustomerApp() {
                       setView('customize')
                     }}
                   >
-                    <div className="kiosk__item-image-placeholder">
-                      <span>{getCategoryIcon(item.category)}</span>
+                    <div className="kiosk__item-image-wrap">
+                      <img
+                        className="kiosk__item-image"
+                        src={getDrinkImage(item.item_name)}
+                        alt={item.item_name}
+                        onError={e => {
+                          // If image file doesn't exist, swap to emoji fallback
+                          e.currentTarget.style.display = 'none'
+                          e.currentTarget.nextSibling.style.display = 'flex'
+                        }}
+                      />
+                      <div className="kiosk__item-image-fallback">
+                        <span>{getCategoryIcon(item.category)}</span>
+                      </div>
                     </div>
                     <div className="kiosk__item-info">
                       <span className="kiosk__item-name">{t(item.item_name)}</span>

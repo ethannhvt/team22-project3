@@ -376,18 +376,37 @@
   transform: translateY(0) scale(0.97);
 }
 
-.kiosk__item-image-placeholder {
-  height: 130px;
+.kiosk__item-image-wrap {
+  height: 150px;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--color-cream) 0%, var(--color-cream-dark) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
+  position: relative;
   transition: background var(--transition-smooth);
 }
-.kiosk__item-card:hover .kiosk__item-image-placeholder {
+.kiosk__item-card:hover .kiosk__item-image-wrap {
   background: linear-gradient(135deg, #f5e6d0 0%, #eedbc4 100%);
 }
+
+.kiosk__item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-smooth);
+}
+.kiosk__item-card:hover .kiosk__item-image {
+  transform: scale(1.05);
+}
+
+/* Shown only when image fails to load */
+.kiosk__item-image-fallback {
+  display: none;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+}
+
 
 .kiosk__item-info {
   padding: var(--space-md);
