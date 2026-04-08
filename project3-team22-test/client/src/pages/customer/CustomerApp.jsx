@@ -29,7 +29,7 @@ function getDrinkImage(itemName) {
     .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
     .trim()
     .replace(/\s+/g, '-')            // spaces to hyphens
-  return `/drinks/${slug}.jpg`
+  return `/drinks/${slug}.png`
 }
 
 // Customization options
