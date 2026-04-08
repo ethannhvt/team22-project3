@@ -29,6 +29,15 @@ const views = [
     accent: 'var(--color-brown)',
     gradient: 'linear-gradient(135deg, #5C3D2E 0%, #8B6914 100%)',
   },
+  {
+    title: 'Menu Board',
+    subtitle: 'Public TV Display',
+    description: 'Auto-scrolling public menu',
+    path: '/menuboard',
+    icon: '📺',
+    accent: '#2a0845',
+    gradient: 'linear-gradient(135deg, #2a0845 0%, #301742 100%)',
+  },
 ]
 
 export default function Portal() {
