@@ -59,10 +59,15 @@ router.post('/', async (req, res) => {
     for (const item of items) {
       const baseDrinkPrice = item.basePrice || item.finalPrice;
 
+      const toppingsList = Array.isArray(item.toppings) 
+        ? item.toppings 
+        : (item.topping && item.topping !== 'None' ? [item.topping] : []);
+      const toppingsString = toppingsList.length > 0 ? toppingsList.join(', ') : 'None';
+
       await client.query(
         `INSERT INTO order_items (order_item_id, order_id, menu_item_id, quantity, unit_price_at_sale, milk_mod, ice_mod, sweetness_mod, line_total)
          VALUES ($1, $2, $3, 1, $4, $5, $6, $7, $8)`,
-        [nextItemId++, orderId, item.menuItemId, baseDrinkPrice, item.topping || 'None', item.iceLevel || 'Regular Ice', item.sugarLevel || '100%', baseDrinkPrice]
+        [nextItemId++, orderId, item.menuItemId, baseDrinkPrice, toppingsString, item.iceLevel || 'Regular Ice', item.sugarLevel || '100%', baseDrinkPrice]
       );
 
       // Deduct inventory for the base drink
@@ -74,24 +79,27 @@ router.post('/', async (req, res) => {
         [item.menuItemId]
       );
 
-      // Handle topping add-on
-      if (item.topping && item.topping !== 'None') {
-        const toppingMenuId = getAddonMenuId(item.topping);
-        if (toppingMenuId > 0) {
-          // Insert addon as separate order item
-          await client.query(
-            `INSERT INTO order_items (order_item_id, order_id, menu_item_id, quantity, unit_price_at_sale, line_total)
-             VALUES ($1, $2, $3, 1, 0.50, 0.50)`,
-            [nextItemId++, orderId, toppingMenuId]
-          );
-          // Deduct inventory for addon
-          await client.query(
-            `UPDATE inventory SET current_quantity = current_quantity - ri.amount_required, last_updated = NOW()
-             FROM recipe r
-             JOIN recipe_ingredient ri ON r.recipe_id = ri.recipe_id
-             WHERE r.menu_item_id = $1 AND inventory.inventory_item_id = ri.inventory_item_id`,
-            [toppingMenuId]
-          );
+      // Handle topping add-ons
+      if (toppingsList.length > 0) {
+        for (const t of toppingsList) {
+          if (t === 'None') continue;
+          const toppingMenuId = getAddonMenuId(t);
+          if (toppingMenuId > 0) {
+            // Insert addon as separate order item
+            await client.query(
+              `INSERT INTO order_items (order_item_id, order_id, menu_item_id, quantity, unit_price_at_sale, line_total)
+               VALUES ($1, $2, $3, 1, 0.50, 0.50)`,
+              [nextItemId++, orderId, toppingMenuId]
+            );
+            // Deduct inventory for addon
+            await client.query(
+              `UPDATE inventory SET current_quantity = current_quantity - ri.amount_required, last_updated = NOW()
+               FROM recipe r
+               JOIN recipe_ingredient ri ON r.recipe_id = ri.recipe_id
+               WHERE r.menu_item_id = $1 AND inventory.inventory_item_id = ri.inventory_item_id`,
+              [toppingMenuId]
+            );
+          }
         }
       }
     }

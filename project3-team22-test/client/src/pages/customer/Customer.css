@@ -683,6 +683,34 @@
   color: var(--color-purple-deep);
 }
 
+.kiosk__cart-item-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.kiosk__cart-edit-btn {
+  height: 40px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  border: 1px solid var(--color-purple-light);
+  color: var(--color-purple);
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.kiosk__cart-edit-btn:hover {
+  background: var(--color-purple-light);
+  color: white;
+}
+.kiosk__cart-edit-btn:active {
+  transform: scale(0.95);
+}
+
 .kiosk__cart-remove-btn {
   width: 40px;
   height: 40px;

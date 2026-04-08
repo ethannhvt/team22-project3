@@ -131,7 +131,10 @@ export default function CustomerApp() {
   // Customization state
   const [sugar, setSugar] = useState('100%')
   const [ice, setIce] = useState('Regular Ice')
-  const [topping, setTopping] = useState('None')
+  const [toppings, setToppings] = useState([])
+
+  // Edit State
+  const [editingItemId, setEditingItemId] = useState(null)
 
   // Cart state
   const [cart, setCart] = useState([])
@@ -239,28 +242,57 @@ export default function CustomerApp() {
   const cartTotal = cartSubtotal + cartTax
 
   const addToCart = useCallback(() => {
-    const toppingObj = TOPPINGS.find(t => t.name === topping)
-    const finalPrice = selectedItem.price + (toppingObj?.price || 0)
-    setCart(prev => [...prev, {
-      id: Date.now() + Math.random(),
-      menuItemId: selectedItem.menu_item_id,
-      name: selectedItem.item_name,
-      basePrice: selectedItem.price,
-      finalPrice,
-      sugarLevel: sugar,
-      iceLevel: ice,
-      topping,
-    }])
+    let addonsPrice = 0
+    toppings.forEach(t => {
+      const toppingObj = TOPPINGS.find(obj => obj.name === t)
+      if (toppingObj) addonsPrice += toppingObj.price
+    })
+    const finalPrice = selectedItem.price + addonsPrice
+
+    if (editingItemId) {
+      setCart(prev => prev.map(i => i.id === editingItemId ? {
+        ...i,
+        finalPrice,
+        sugarLevel: sugar,
+        iceLevel: ice,
+        toppings,
+      } : i))
+      setEditingItemId(null)
+    } else {
+      setCart(prev => [...prev, {
+        id: Date.now() + Math.random(),
+        menuItemId: selectedItem.menu_item_id,
+        name: selectedItem.item_name,
+        basePrice: selectedItem.price,
+        finalPrice,
+        sugarLevel: sugar,
+        iceLevel: ice,
+        toppings,
+      }])
+    }
+
     // Reset and go back to categories
     setSugar('100%')
     setIce('Regular Ice')
-    setTopping('None')
+    setToppings([])
     setView('categories')
-  }, [selectedItem, sugar, ice, topping])
+  }, [selectedItem, sugar, ice, toppings, editingItemId])
 
   const removeFromCart = useCallback((itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId))
   }, [])
+
+  const editCartItem = useCallback((itemId) => {
+    const itemToEdit = cart.find(i => i.id === itemId)
+    if (!itemToEdit) return
+    const fullMenuObj = menu.find(m => m.menu_item_id === itemToEdit.menuItemId)
+    setSelectedItem(fullMenuObj)
+    setSugar(itemToEdit.sugarLevel)
+    setIce(itemToEdit.iceLevel)
+    setToppings(itemToEdit.toppings || [])
+    setEditingItemId(itemId)
+    setView('customize')
+  }, [cart, menu])
 
   const sendEmailNotification = useCallback(async () => {
     if (!notifyEmail.trim()) return
@@ -302,7 +334,7 @@ export default function CustomerApp() {
             basePrice: item.basePrice,
             sugarLevel: item.sugarLevel,
             iceLevel: item.iceLevel,
-            topping: item.topping,
+            toppings: item.toppings,
           })),
           paymentMethod,
           employeeId: 0, // Self-service kiosk
@@ -342,7 +374,7 @@ export default function CustomerApp() {
 
   // Calculate live price during customization
   const customizePrice = selectedItem
-    ? selectedItem.price + (TOPPINGS.find(t => t.name === topping)?.price || 0)
+    ? selectedItem.price + (toppings.reduce((sum, t) => sum + (TOPPINGS.find(obj => obj.name === t)?.price || 0), 0))
     : 0
 
   // Current language info
@@ -481,7 +513,8 @@ export default function CustomerApp() {
                       setSelectedItem(item)
                       setSugar('100%')
                       setIce('Regular Ice')
-                      setTopping('None')
+                      setToppings([])
+                      setEditingItemId(null)
                       setView('customize')
                     }}
                   >
@@ -565,15 +598,21 @@ export default function CustomerApp() {
                 </div>
               </div>
 
-              {/* Toppings */}
+              {/* Toppings (Multi-Select) */}
               <div className="kiosk__option-group">
-                <h3 className="kiosk__option-label">{t(UI_STRINGS.addTopping)}</h3>
+                <h3 className="kiosk__option-label">{t(UI_STRINGS.addTopping)} (Multiple Allowed)</h3>
                 <div className="kiosk__option-row">
-                  {TOPPINGS.map(top => (
+                  {TOPPINGS.filter(t => t.name !== 'None').map(top => (
                     <button
                       key={top.name}
-                      className={`kiosk__option-btn kiosk__option-btn--topping ${topping === top.name ? 'kiosk__option-btn--active' : ''}`}
-                      onClick={() => setTopping(top.name)}
+                      className={`kiosk__option-btn kiosk__option-btn--topping ${toppings.includes(top.name) ? 'kiosk__option-btn--active' : ''}`}
+                      onClick={() => {
+                        setToppings(prev => 
+                          prev.includes(top.name) 
+                            ? prev.filter(x => x !== top.name) 
+                            : [...prev, top.name]
+                        )
+                      }}
                     >
                       <span>{t(top.name)}</span>
                       {top.price > 0 && (
@@ -591,7 +630,7 @@ export default function CustomerApp() {
                 ${customizePrice.toFixed(2)}
               </div>
               <button className="kiosk__add-to-cart-btn" onClick={addToCart}>
-                {t(UI_STRINGS.addToCart)}
+                {editingItemId ? 'Update Order' : t(UI_STRINGS.addToCart)}
               </button>
             </div>
           </div>
@@ -634,22 +673,30 @@ export default function CustomerApp() {
                           <span>{item.sugarLevel} {t(UI_STRINGS.sugar)}</span>
                           <span>•</span>
                           <span>{t(item.iceLevel)}</span>
-                          {item.topping !== 'None' && (
+                          {item.toppings && item.toppings.length > 0 && (
                             <>
                               <span>•</span>
-                              <span>{t(item.topping)}</span>
+                              <span>{item.toppings.map(t2 => t(t2)).join(', ')}</span>
                             </>
                           )}
                         </div>
                       </div>
                       <div className="kiosk__cart-item-right">
                         <span className="kiosk__cart-item-price">${item.finalPrice.toFixed(2)}</span>
-                        <button
-                          className="kiosk__cart-remove-btn"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          ✕
-                        </button>
+                        <div className="kiosk__cart-item-actions">
+                          <button
+                            className="kiosk__cart-edit-btn"
+                            onClick={() => editCartItem(item.id)}
+                          >
+                            ✎ Edit
+                          </button>
+                          <button
+                            className="kiosk__cart-remove-btn"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -27,7 +27,8 @@ export default function CashierApp() {
   const [selectedItem, setSelectedItem] = useState(null)
   const [sugar, setSugar] = useState('100%')
   const [ice, setIce] = useState('Regular Ice')
-  const [topping, setTopping] = useState('None')
+  const [toppings, setToppings] = useState([])
+  const [editingItemId, setEditingItemId] = useState(null)
 
   // cart / order state
   const [cart, setCart] = useState([])
@@ -72,39 +73,93 @@ export default function CashierApp() {
     setOrderLog('')
     setCartTotal(0)
     setCenterView('categories')
+    setEditingItemId(null)
   }
 
   // --- CART ---
   const itemTotal = useCallback(() => {
     if (!selectedItem) return 0
-    const top = TOPPINGS.find(t => t.label === topping)
-    return selectedItem.price + (top?.price || 0)
-  }, [selectedItem, topping])
+    let addOnsPrice = 0
+    if (toppings && toppings.length > 0) {
+      toppings.forEach(t => {
+        const top = TOPPINGS.find(obj => obj.label === t)
+        if (top) addOnsPrice += top.price
+      })
+    }
+    return selectedItem.price + addOnsPrice
+  }, [selectedItem, toppings])
 
   const addToCart = () => {
-    const top = TOPPINGS.find(t => t.label === topping)
-    const finalPrice = selectedItem.price + (top?.price || 0)
-    const newItem = {
-      id: Date.now(),
-      menuItemId: selectedItem.menu_item_id,
-      name: selectedItem.item_name,
-      basePrice: selectedItem.price,
-      finalPrice,
-      sugar,
-      ice,
-      topping,
+    let addOnsPrice = 0
+    if (toppings && toppings.length > 0) {
+      toppings.forEach(t => {
+        const top = TOPPINGS.find(obj => obj.label === t)
+        if (top) addOnsPrice += top.price
+      })
     }
-    setCart(prev => [...prev, newItem])
-    setCartTotal(prev => prev + finalPrice)
-    setOrderLog(prev =>
-      prev + `${selectedItem.item_name} - $${finalPrice.toFixed(2)}\n  - ${sugar} Sugar\n  - ${ice}\n  - ${topping}\n\n`
-    )
+    const finalPrice = selectedItem.price + addOnsPrice
+    
+    if (editingItemId) {
+      // Edit mode: replace the old item and adjust totals
+      const oldItem = cart.find(i => i.id === editingItemId)
+      const diff = finalPrice - oldItem.finalPrice
+      
+      const newLogDiff = `${selectedItem.item_name} - $${finalPrice.toFixed(2)}\n  - ${sugar} Sugar\n  - ${ice}\n  - ${toppings.length > 0 ? toppings.join(', ') : 'None'}\n\n`
+      
+      setCart(prev => prev.map(i => i.id === editingItemId ? {
+        ...i,
+        finalPrice,
+        sugar,
+        ice,
+        toppings
+      } : i))
+      setCartTotal(prev => prev + diff)
+      
+      // We will rebuild the orderLog completely below to ensure it stays accurate
+    } else {
+      // Add new item
+      const newItem = {
+        id: Date.now(),
+        menuItemId: selectedItem.menu_item_id,
+        name: selectedItem.item_name,
+        basePrice: selectedItem.price,
+        finalPrice,
+        sugar,
+        ice,
+        toppings,
+      }
+      setCart(prev => [...prev, newItem])
+      setCartTotal(prev => prev + finalPrice)
+    }
+
     setCenterView('categories')
-    setSugar('100%'); setIce('Regular Ice'); setTopping('None')
+    setEditingItemId(null)
+    setSugar('100%'); setIce('Regular Ice'); setToppings([])
   }
 
+  // Re-build order log string anytime cart changes (vital since we can now edit old items)
+  useEffect(() => {
+    let newLog = ''
+    cart.forEach(c => {
+      newLog += `${c.name} - $${c.finalPrice.toFixed(2)}\n  - ${c.sugar} Sugar\n  - ${c.ice}\n  - ${c.toppings && c.toppings.length > 0 ? c.toppings.join(', ') : 'None'}\n\n`
+    })
+    setOrderLog(newLog)
+  }, [cart])
+
   const clearCart = () => {
-    setCart([]); setCartTotal(0); setOrderLog(''); setCenterView('categories')
+    setCart([]); setCartTotal(0); setOrderLog(''); setCenterView('categories'); setEditingItemId(null);
+  }
+
+  const editCartItem = (itemId) => {
+    const itemToEdit = cart.find(i => i.id === itemId)
+    if (!itemToEdit) return
+    const fullMenuObj = menu.find(m => m.menu_item_id === itemToEdit.menuItemId)
+    setSelectedItem(fullMenuObj)
+    setSugar(itemToEdit.sugar)
+    setIce(itemToEdit.ice)
+    setToppings(itemToEdit.toppings || [])
+    setEditingItemId(itemId)
+    setCenterView('customize')
   }
 
   const handleCheckout = async () => {
@@ -119,7 +174,7 @@ export default function CashierApp() {
       body: JSON.stringify({
         items: cart.map(i => ({
           menuItemId: i.menuItemId, finalPrice: i.finalPrice, basePrice: i.basePrice,
-          sugarLevel: i.sugar, iceLevel: i.ice, topping: i.topping,
+          sugarLevel: i.sugar, iceLevel: i.ice, toppings: i.toppings,
         })),
         paymentMethod,
         employeeId: employee.employeeId,
@@ -189,8 +244,9 @@ export default function CashierApp() {
                   className="cashier__item-btn"
                   onClick={() => {
                     setSelectedItem(item)
-                    setSugar('100%'); setIce('Regular Ice'); setTopping('None')
+                    setSugar('100%'); setIce('Regular Ice'); setToppings([])
                     setCenterView('customize')
+                    setEditingItemId(null)
                   }}
                 >
                   <span className="cashier__item-name">{item.item_name}</span>
@@ -220,11 +276,23 @@ export default function CashierApp() {
               </select>
             </div>
 
-            <div className="cashier__customize-row">
-              <label>Topping:</label>
-              <select value={topping} onChange={e => setTopping(e.target.value)}>
-                {TOPPINGS.map(t => <option key={t.label}>{t.label}</option>)}
-              </select>
+            <div className="cashier__customize-row cashier__customize-row--toppings">
+              <label>Toppings:</label>
+              <div className="cashier__toppings-wrapper">
+                {TOPPINGS.filter(t => t.label !== 'None').map(t => (
+                  <button
+                    key={t.label}
+                    className={`cashier__topping-btn ${toppings.includes(t.label) ? 'cashier__topping-btn--active' : ''}`}
+                    onClick={() => {
+                      setToppings(prev =>
+                        prev.includes(t.label) ? prev.filter(x => x !== t.label) : [...prev, t.label]
+                      )
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="cashier__item-total">
@@ -232,8 +300,10 @@ export default function CashierApp() {
             </div>
 
             <div className="cashier__customize-actions">
-              <button onClick={() => setCenterView('items')}>Go Back</button>
-              <button className="cashier__add-btn" onClick={addToCart}>Add to Cart</button>
+              <button onClick={() => setCenterView('items')}>Cancel</button>
+              <button className="cashier__add-btn" onClick={addToCart}>
+                {editingItemId ? 'Update Cart' : 'Add to Cart'}
+              </button>
             </div>
           </div>
         )}
@@ -242,11 +312,20 @@ export default function CashierApp() {
       {/* RIGHT SIDEBAR — ORDER SUMMARY */}
       <div className="cashier__sidebar">
         <div className="cashier__sidebar-title">Current Order</div>
-        <textarea
-          className="cashier__order-log"
-          readOnly
-          value={orderLog}
-        />
+        <div className="cashier__cart-items">
+          {cart.map(c => (
+            <div key={c.id} className="cashier__cart-item">
+              <div className="cashier__cart-item-header">
+                <strong>{c.name}</strong> <span>${c.finalPrice.toFixed(2)}</span>
+              </div>
+              <div className="cashier__cart-item-details">
+                {c.sugar} Sugar, {c.ice} <br/>
+                {c.toppings && c.toppings.length > 0 ? c.toppings.join(', ') : 'No Toppings'}
+              </div>
+              <button className="cashier__cart-edit-btn" onClick={() => editCartItem(c.id)}>✎ Edit</button>
+            </div>
+          ))}
+        </div>
         <div className="cashier__sidebar-footer">
           <div className="cashier__total">Total: ${cartTotal.toFixed(2)}</div>
           <div className="cashier__sidebar-btns">
