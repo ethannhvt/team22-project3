@@ -1,156 +1,165 @@
 /* ============================================
-   Menu Board View — Public Facing Display
-   Dark Mode, High Contrast, Auto-Scrolling
+   Menu Board View — Static TV Dashboard
+   Classic 3-column Layout
    ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;600&display=swap');
 
 .menuboard {
   height: 100vh;
   width: 100vw;
-  background: radial-gradient(circle at 50% 0%, #2a0845 0%, #0d0118 100%);
-  color: white;
+  background: radial-gradient(circle at center, #1b1b1b 0%, #0a0a0a 100%);
+  color: #eeeeee;
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Oswald', sans-serif;
   display: flex;
   flex-direction: column;
 }
 
 .menuboard__header {
-  padding: 24px 48px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 48px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   z-index: 10;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
 
 .menuboard__logo-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
 }
 
 .menuboard__title {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 2px;
+  font-size: 3.5rem;
+  font-weight: 700;
+  letter-spacing: 5px;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #d4af37 0%, #fff2c8 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #d4af37;
   margin: 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-.menuboard__viewport {
+.menuboard__content-grid {
   flex: 1;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.menuboard__scroll-container {
-  display: flex;
-  flex-direction: column;
-  /* Double content allows infinite scrolling */
-  animation: autoscroll 60s linear infinite;
-}
-
-.menuboard__content-block {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr 400px; /* 2 cols text, 1 col hero image */
+  padding: 0 48px 48px 48px;
   gap: 60px;
-  padding: 40px 60px;
+  align-items: start;
 }
 
-.menuboard__scroll-container:hover {
-  /* Pause on hover if an admin ever wanted to stop it with a mouse */
-  animation-play-state: paused;
-}
-
-@keyframes autoscroll {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); } 
+/* Categories & Text Columns */
+.menuboard__categories-col {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
 }
 
 .menuboard__category {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.menuboard__category-header {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #fff;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
-  padding-bottom: 12px;
-  display: flex;
-  align-items: center;
   gap: 12px;
 }
 
-.menuboard__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 32px;
-}
-
-.menuboard__item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.menuboard__item-image-wrap {
-  width: 100px;
-  height: 120px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
+.menuboard__category-header {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #d4af37;
+  border-bottom: 2px dashed rgba(212, 175, 55, 0.4);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
+  gap: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-.menuboard__item-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 8px;
-}
-
-.menuboard__item-image-fallback {
-  font-size: 3.5rem;
-}
-
-.menuboard__item-info {
-  flex: 1;
+.menuboard__items-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.menuboard__item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: 'Inter', sans-serif;
 }
 
 .menuboard__item-name {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  color: #f8f8f8;
-  line-height: 1.2;
+  letter-spacing: 0.5px;
+}
+
+.menuboard__item-dots {
+  flex: 1;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+  margin: 0 16px;
+  position: relative;
+  top: -8px;
 }
 
 .menuboard__item-price {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  color: #d4af37;
+  color: #fff;
+}
+
+/* Hero Display Image Area */
+.menuboard__hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.menuboard__hero-image {
+  width: 90%;
+  max-width: 400px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));
+  mix-blend-mode: multiply;
+}
+
+/* When mix-blend-mode is used on very dark bg, it might hide the image if not careful. 
+   If image background is white, we might want screen or normal with no mix.
+   Actually, it's safer to remove mix-blend-mode for dark bgs or use transparent PNGs */
+.menuboard__hero-image {
+  mix-blend-mode: normal;
+}
+
+.menuboard__hero-badge {
+  position: absolute;
+  top: 10%;
+  right: 10px;
+  background: #cc292b;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  padding: 16px;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  transform: rotate(15deg);
+}
+
+.menuboard__hero-badge small {
+  font-size: 0.9rem;
+  opacity: 0.9;
 }
 
 .menuboard__loading {
