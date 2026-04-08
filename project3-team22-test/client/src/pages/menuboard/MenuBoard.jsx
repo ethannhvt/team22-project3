@@ -3,7 +3,6 @@ import './MenuBoard.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
-// Omit "Add-on". You can omit others if they shouldn't be publicly listed on TV
 const categoryIcons = {
   'Milk Tea': '🧋',
   'Fruit Tea': '🍊',
@@ -18,6 +17,15 @@ const categoryIcons = {
 
 function getCategoryIcon(category) {
   return categoryIcons[category] || '🍵'
+}
+
+function getDrinkImage(itemName) {
+  const slug = itemName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+  return `/drinks/${slug}.png`
 }
 
 export default function MenuBoard() {
@@ -53,30 +61,44 @@ export default function MenuBoard() {
     )
   }
 
-  const renderCategoryList = () => (
-    <div className="menuboard__categories-masonry">
-      {categories.map(cat => {
-        const items = menu.filter(item => item.category === cat)
-        if (items.length === 0) return null
+  // Build the content payload (categories + items)
+  const renderCategories = () => (
+    categories.map(cat => {
+      const items = menu.filter(item => item.category === cat)
+      if (items.length === 0) return null
 
-        return (
-          <div key={cat} className="menuboard__category">
-            <h2 className="menuboard__category-header">
-              <span>{getCategoryIcon(cat)}</span> {cat}
-            </h2>
-            <div className="menuboard__items-list">
-              {items.map(item => (
-                <div key={item.menu_item_id} className="menuboard__item-row">
-                  <span className="menuboard__item-name">{item.item_name}</span>
-                  <div className="menuboard__item-dots"></div>
-                  <span className="menuboard__item-price">${item.price.toFixed(2)}</span>
+      return (
+        <div key={cat} className="menuboard__category">
+          <h2 className="menuboard__category-header">
+            <span>{getCategoryIcon(cat)}</span> {cat}
+          </h2>
+          <div className="menuboard__grid">
+            {items.map(item => (
+              <div key={item.menu_item_id} className="menuboard__item">
+                <div className="menuboard__item-image-wrap">
+                  <img
+                    className="menuboard__item-image"
+                    src={getDrinkImage(item.item_name)}
+                    alt={item.item_name}
+                    onError={e => {
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.nextSibling.style.display = 'flex'
+                    }}
+                  />
+                  <div className="menuboard__item-image-fallback" style={{ display: 'none' }}>
+                    {getCategoryIcon(item.category)}
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="menuboard__item-info">
+                  <div className="menuboard__item-name">{item.item_name}</div>
+                  <div className="menuboard__item-price">${item.price.toFixed(2)}</div>
+                </div>
+              </div>
+            ))}
           </div>
-        )
-      })}
-    </div>
+        </div>
+      )
+    })
   )
 
   return (
@@ -86,21 +108,15 @@ export default function MenuBoard() {
         <h1 className="menuboard__title">Dragon Boba Menu</h1>
       </header>
       
-      <div className="menuboard__content-grid">
-        {/* Dynamic masonry columns automatically balance varying length lists */}
-        {renderCategoryList()}
-
-        {/* Column 3 - Hero Poster Display */}
-        <div className="menuboard__hero">
-          <img 
-            className="menuboard__hero-image" 
-            /* Hardcode one of the best looking images provided by the user */
-            src="/drinks/classic-milk-tea.png" 
-            alt="Classic Milk Tea"
-          />
-          <div className="menuboard__hero-badge">
-            <small>CUSTOMER FAVORITE</small>
-            <span>$5.50</span>
+      <div className="menuboard__viewport">
+        {/* We render two identical blocks so the CSS animation can scroll seamlessly 
+            from block 1 to block 2 indefinitely (-50% transform). */}
+        <div className="menuboard__scroll-container">
+          <div className="menuboard__content-block">
+            {renderCategories()}
+          </div>
+          <div className="menuboard__content-block" aria-hidden="true">
+            {renderCategories()}
           </div>
         </div>
       </div>
