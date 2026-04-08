@@ -53,14 +53,9 @@ export default function MenuBoard() {
     )
   }
 
-  // Split categories roughly in half to populate 2 text columns
-  const half = Math.ceil(categories.length / 2)
-  const col1Cats = categories.slice(0, half)
-  const col2Cats = categories.slice(half)
-
-  const renderCategoryList = (catList) => (
-    <div className="menuboard__categories-col">
-      {catList.map(cat => {
+  const renderCategoryList = () => (
+    <div className="menuboard__categories-masonry">
+      {categories.map(cat => {
         const items = menu.filter(item => item.category === cat)
         if (items.length === 0) return null
 
@@ -92,11 +87,8 @@ export default function MenuBoard() {
       </header>
       
       <div className="menuboard__content-grid">
-        {/* Column 1 array */}
-        {renderCategoryList(col1Cats)}
-
-        {/* Column 2 array */}
-        {renderCategoryList(col2Cats)}
+        {/* Dynamic masonry columns automatically balance varying length lists */}
+        {renderCategoryList()}
 
         {/* Column 3 - Hero Poster Display */}
         <div className="menuboard__hero">

@@ -42,35 +42,37 @@
 .menuboard__content-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr 400px; /* 2 cols text, 1 col hero image */
+  grid-template-columns: 1fr 340px; /* Text Masonry on left, Hero on right */
   padding: 0 48px 48px 48px;
   gap: 60px;
   align-items: start;
 }
 
 /* Categories & Text Columns */
-.menuboard__categories-col {
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
+.menuboard__categories-masonry {
+  column-count: 2;
+  column-gap: 60px;
+  height: 100%;
 }
 
 .menuboard__category {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  break-inside: avoid;
+  margin-bottom: 30px;
 }
 
 .menuboard__category-header {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #d4af37;
   border-bottom: 2px dashed rgba(212, 175, 55, 0.4);
-  padding-bottom: 8px;
-  margin-bottom: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -78,7 +80,7 @@
 .menuboard__items-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .menuboard__item-row {
@@ -89,7 +91,7 @@
 }
 
 .menuboard__item-name {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -99,11 +101,11 @@
   border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
   margin: 0 16px;
   position: relative;
-  top: -8px;
+  top: -6px;
 }
 
 .menuboard__item-price {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #fff;
 }
