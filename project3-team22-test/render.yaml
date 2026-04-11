@@ -22,7 +22,7 @@ services:
         sync: false          # Your Google Cloud Translation API key
       - key: GMAIL_USER
         sync: false          # Gmail address used to send order-ready emails
-      - key: GMAIL_APP_PASSWORD
+      - key: GMAIL_PASS
         sync: false          # Gmail App Password (not your login password)
 
   # ── Frontend Static Site ─────────────────────────────────────────────
