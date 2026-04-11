@@ -927,28 +927,94 @@
   margin-bottom: var(--space-md);
 }
 
-.kiosk__sms-input-row {
+.kiosk__sms-gateway-container {
   display: flex;
-  gap: var(--space-sm);
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: center;
 }
 
-.kiosk__sms-input {
-  flex: 1;
-  padding: var(--space-sm) var(--space-md);
+.kiosk__numpad-display {
+  width: 100%;
+  max-width: 250px;
+  background: white;
   border: 2px solid var(--color-gray-200);
   border-radius: var(--radius-md);
-  font-family: var(--font-body);
+  padding: var(--space-md);
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--color-purple-deep);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.kiosk__numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  width: 100%;
+  max-width: 250px;
+}
+
+.kiosk__numpad-btn {
+  background: white;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: all 0.1s;
+}
+.kiosk__numpad-btn:active {
+  transform: scale(0.95);
+  background: var(--color-gray-100);
+}
+.kiosk__numpad-btn--action {
   font-size: 1rem;
-  color: var(--color-gray-900);
-  background: var(--color-white);
-  outline: none;
-  transition: border-color var(--transition-fast);
+  background: var(--color-gray-100);
+  color: var(--color-red);
 }
-.kiosk__sms-input:focus {
-  border-color: var(--color-purple);
+
+.kiosk__carrier-select {
+  width: 100%;
+  text-align: center;
+  margin-top: var(--space-sm);
 }
-.kiosk__sms-input::placeholder {
-  color: var(--color-gray-300);
+
+.kiosk__carrier-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-sm);
+}
+
+.kiosk__carrier-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+.kiosk__carrier-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.kiosk__carrier-btn--active {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: white;
+  box-shadow: 0 4px 10px rgba(212, 168, 71, 0.4);
 }
 
 .kiosk__sms-btn {

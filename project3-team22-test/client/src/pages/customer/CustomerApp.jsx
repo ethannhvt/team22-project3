@@ -144,7 +144,8 @@ export default function CustomerApp() {
   const [submitting, setSubmitting] = useState(false)
 
   // Email notification state
-  const [notifyEmail, setNotifyEmail] = useState('')
+  const [notifyPhone, setNotifyPhone] = useState('')
+  const [notifyCarrier, setNotifyCarrier] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [emailSending, setEmailSending] = useState(false)
 
@@ -295,14 +296,17 @@ export default function CustomerApp() {
   }, [cart, menu])
 
   const sendEmailNotification = useCallback(async () => {
-    if (!notifyEmail.trim()) return
+    if (!notifyPhone || notifyPhone.length !== 10 || !notifyCarrier) return
     setEmailSending(true)
+    
+    const targetEmail = `${notifyPhone}${notifyCarrier}`
+
     try {
       const res = await fetch(`${API_BASE}/email/notify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: notifyEmail.trim(),
+          email: targetEmail,
           orderId: orderResult?.orderId,
           total: orderResult?.total,
         }),
@@ -319,7 +323,7 @@ export default function CustomerApp() {
     } finally {
       setEmailSending(false)
     }
-  }, [notifyEmail, orderResult])
+  }, [notifyPhone, notifyCarrier, orderResult])
 
   const submitOrder = useCallback(async (paymentMethod) => {
     setSubmitting(true)
@@ -344,7 +348,8 @@ export default function CustomerApp() {
       if (data.success) {
         setOrderResult(data)
         setCart([])
-        setNotifyEmail('')
+        setNotifyPhone('')
+        setNotifyCarrier('')
         setEmailSent(false)
         setView('confirmation')
       } else {
@@ -793,21 +798,55 @@ export default function CustomerApp() {
                   </div>
                 ) : (
                   <>
-                    <p className="kiosk__sms-label">📧 Want an email when your order is ready?</p>
-                    <div className="kiosk__sms-input-row">
-                      <input
-                        className="kiosk__sms-input"
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={notifyEmail}
-                        onChange={e => setNotifyEmail(e.target.value)}
-                      />
+                    <p className="kiosk__sms-label">📱 Want a text when your order is ready?</p>
+                    <div className="kiosk__sms-gateway-container">
+                      <div className="kiosk__numpad-display">
+                        <div className="kiosk__numpad-display-text">
+                          {notifyPhone ? notifyPhone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3') : 'Enter 10-digit number'}
+                        </div>
+                      </div>
+                      <div className="kiosk__numpad-grid">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'Clear', 0, '⌫'].map(key => (
+                          <button
+                            key={key}
+                            className={`kiosk__numpad-btn ${typeof key === 'string' ? 'kiosk__numpad-btn--action' : ''}`}
+                            onClick={() => {
+                              if (key === 'Clear') setNotifyPhone('')
+                              else if (key === '⌫') setNotifyPhone(prev => prev.slice(0, -1))
+                              else if (notifyPhone.length < 10) setNotifyPhone(prev => prev + key)
+                            }}
+                          >
+                            {key}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="kiosk__carrier-select">
+                        <p className="kiosk__carrier-label">Select Carrier:</p>
+                        <div className="kiosk__carrier-buttons">
+                          {[
+                            { label: 'AT&T', domain: '@txt.att.net' },
+                            { label: 'Verizon', domain: '@vtext.com' },
+                            { label: 'T-Mobile', domain: '@tmomail.net' },
+                            { label: 'Sprint', domain: '@messaging.sprintpcs.com' }
+                          ].map(carrier => (
+                            <button
+                              key={carrier.label}
+                              className={`kiosk__carrier-btn ${notifyCarrier === carrier.domain ? 'kiosk__carrier-btn--active' : ''}`}
+                              onClick={() => setNotifyCarrier(carrier.domain)}
+                            >
+                              {carrier.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <button
                         className="kiosk__sms-btn"
                         onClick={sendEmailNotification}
-                        disabled={emailSending || !notifyEmail.trim()}
+                        disabled={emailSending || notifyPhone.length !== 10 || !notifyCarrier}
                       >
-                        {emailSending ? '...' : 'Notify Me'}
+                        {emailSending ? '...' : 'Text Me'}
                       </button>
                     </div>
                   </>
