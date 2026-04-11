@@ -793,8 +793,8 @@ export default function CustomerApp() {
               <div className="kiosk__sms-section">
                 {emailSent ? (
                   <div className="kiosk__sms-success">
-                    <span className="kiosk__sms-success-icon">📧</span>
-                    <p>We'll email you when your order is ready!</p>
+                    <span className="kiosk__sms-success-icon">📱</span>
+                    <p>We'll text you when your order is ready!</p>
                   </div>
                 ) : (
                   <>
