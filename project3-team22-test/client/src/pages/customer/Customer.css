@@ -1068,7 +1068,7 @@
   width: 100%;
   background: linear-gradient(90deg, var(--color-purple), var(--color-gold));
   border-radius: inherit;
-  animation: progressShrink 8s linear forwards;
+  animation: progressShrink 25s linear forwards;
 }
 
 @keyframes progressShrink {

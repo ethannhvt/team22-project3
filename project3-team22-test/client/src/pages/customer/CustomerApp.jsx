@@ -369,7 +369,7 @@ export default function CustomerApp() {
       const timer = setTimeout(() => {
         setOrderResult(null)
         setView('categories')
-      }, 8000)
+      }, 25000)
       return () => clearTimeout(timer)
     }
   }, [view])
