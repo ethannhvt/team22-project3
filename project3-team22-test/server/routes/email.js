@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 
 // POST /api/email/notify
 // Body: { email: string, orderId: number, total: string }
-router.post('/notify', (req, res) => {
+router.post('/notify', async (req, res) => {
   const { email, orderId, total } = req.body;
 
   if (!email) {
