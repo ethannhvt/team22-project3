@@ -20,34 +20,27 @@ router.post('/notify', (req, res) => {
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: { user, pass }
   });
 
-  // Wait 5 seconds before sending (change to 300000 for 5 real minutes in production)
-  const DELAY_MS = 5000;
+  try {
+    const mailOptions = {
+      from: `"Dragon Boba" <${user}>`,
+      to: email,
+      subject: `Order #${orderId} is ready!`,
+      text: `Your Dragon Boba order #${orderId} is ready for pickup! Total: $${total}`
+    };
 
-  console.log(`[Email] Scheduled order-ready notification for order #${orderId} → ${email} in ${DELAY_MS / 1000}s`);
-
-  // Respond immediately so the customer isn't waiting
-  res.json({ success: true, message: 'Email notification scheduled' });
-
-  setTimeout(async () => {
-    try {
-      const mailOptions = {
-        from: `"Dragon Boba" <${user}>`,
-        to: email,
-        subject: `Order #${orderId} is ready!`,
-        // Plain text is best for routing into SMS gateways
-        text: `Your Dragon Boba order #${orderId} is ready for pickup! Total: $${total}`
-      };
-
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[Email-to-SMS] Successfully sent message to ${email} for order #${orderId}. ID: ${info.messageId}`);
-    } catch (err) {
-      console.error(`[Email Error] Unexpected error sending to ${email}:`, err.message);
-    }
-  }, DELAY_MS);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[Email-to-SMS] Successfully sent message to ${email} for order #${orderId}. ID: ${info.messageId}`);
+    res.json({ success: true, message: 'SMS notification sent successfully' });
+  } catch (err) {
+    console.error(`[Email Error] Unexpected error sending to ${email}:`, err.message);
+    res.status(500).json({ success: false, error: 'Failed to send SMS notification', details: err.message });
+  }
 });
 
 module.exports = router;
