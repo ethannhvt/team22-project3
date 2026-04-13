@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import emailjs from '@emailjs/browser'
+import AccessibilityTools from './AccessibilityTools'
+import SmsNumpadGateway from './SmsNumpadGateway'
 import './Customer.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -408,46 +410,18 @@ export default function CustomerApp() {
           <h1 className="kiosk__header-title">Dragon Boba</h1>
         </div>
         <div className="kiosk__header-actions">
-          {/* Language Picker */}
-          <div className="kiosk__lang-picker" ref={langDropdownRef}>
-            <button
-              className={`kiosk__lang-btn ${lang !== 'en' ? 'kiosk__lang-btn--active' : ''}`}
-              onClick={() => setLangDropdownOpen(prev => !prev)}
-              title="Change language"
-            >
-              <span className="kiosk__lang-flag">{currentLang.flag}</span>
-              <span className="kiosk__lang-code">{currentLang.code.toUpperCase()}</span>
-              <span className="kiosk__lang-arrow">{langDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            {langDropdownOpen && (
-              <div className="kiosk__lang-dropdown">
-                {LANGUAGES.map(l => (
-                  <button
-                    key={l.code}
-                    className={`kiosk__lang-option ${lang === l.code ? 'kiosk__lang-option--active' : ''}`}
-                    onClick={() => {
-                      setLang(l.code)
-                      setLangDropdownOpen(false)
-                    }}
-                  >
-                    <span className="kiosk__lang-option-flag">{l.flag}</span>
-                    <span className="kiosk__lang-option-label">{l.label}</span>
-                    {lang === l.code && <span className="kiosk__lang-option-check">✓</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Font Size Toggle */}
-          <button
-            className={`kiosk__font-toggle ${fontSize !== 'normal' ? 'kiosk__font-toggle--active' : ''}`}
-            onClick={cycleFontSize}
-            title={`Text size: ${fontSize === 'normal' ? 'Normal' : fontSize === 'large' ? 'Large' : 'Extra Large'}`}
-          >
-            <span className="kiosk__font-toggle-icon">🔤</span>
-            <span className="kiosk__font-toggle-label">{FONT_SIZE_LABELS[fontSize]}</span>
-          </button>
+          {/* Accessibility Tools (Language & Font) */}
+          <AccessibilityTools
+            lang={lang}
+            setLang={setLang}
+            LANGUAGES={LANGUAGES}
+            langDropdownOpen={langDropdownOpen}
+            setLangDropdownOpen={setLangDropdownOpen}
+            langDropdownRef={langDropdownRef}
+            fontSize={fontSize}
+            cycleFontSize={cycleFontSize}
+            FONT_SIZE_LABELS={FONT_SIZE_LABELS}
+          />
           {view !== 'confirmation' && (
             <button
               className="kiosk__cart-btn"
@@ -801,57 +775,14 @@ export default function CustomerApp() {
                   </div>
                 ) : (
                   <>
-                    <p className="kiosk__sms-label">📱 Want a text when your order is ready?</p>
-                    <div className="kiosk__sms-gateway-container">
-                      <div className="kiosk__numpad-display">
-                        <div className="kiosk__numpad-display-text">
-                          {notifyPhone ? notifyPhone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3') : 'Enter 10-digit number'}
-                        </div>
-                      </div>
-                      <div className="kiosk__numpad-grid">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'Clear', 0, '⌫'].map(key => (
-                          <button
-                            key={key}
-                            className={`kiosk__numpad-btn ${typeof key === 'string' ? 'kiosk__numpad-btn--action' : ''}`}
-                            onClick={() => {
-                              if (key === 'Clear') setNotifyPhone('')
-                              else if (key === '⌫') setNotifyPhone(prev => prev.slice(0, -1))
-                              else if (notifyPhone.length < 10) setNotifyPhone(prev => prev + key)
-                            }}
-                          >
-                            {key}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="kiosk__carrier-select">
-                        <p className="kiosk__carrier-label">Select Carrier:</p>
-                        <div className="kiosk__carrier-buttons">
-                          {[
-                            { label: 'AT&T', domain: '@txt.att.net' },
-                            { label: 'Verizon', domain: '@vtext.com' },
-                            { label: 'T-Mobile', domain: '@tmomail.net' },
-                            { label: 'Sprint', domain: '@messaging.sprintpcs.com' }
-                          ].map(carrier => (
-                            <button
-                              key={carrier.label}
-                              className={`kiosk__carrier-btn ${notifyCarrier === carrier.domain ? 'kiosk__carrier-btn--active' : ''}`}
-                              onClick={() => setNotifyCarrier(carrier.domain)}
-                            >
-                              {carrier.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <button
-                        className="kiosk__sms-btn"
-                        onClick={sendEmailNotification}
-                        disabled={emailSending || notifyPhone.length !== 10 || !notifyCarrier}
-                      >
-                        {emailSending ? '...' : 'Text Me'}
-                      </button>
-                    </div>
+                    <SmsNumpadGateway
+                      notifyPhone={notifyPhone}
+                      setNotifyPhone={setNotifyPhone}
+                      notifyCarrier={notifyCarrier}
+                      setNotifyCarrier={setNotifyCarrier}
+                      emailSending={emailSending}
+                      sendEmailNotification={sendEmailNotification}
+                    />
                   </>
                 )}
               </div>
