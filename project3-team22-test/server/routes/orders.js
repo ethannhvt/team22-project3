@@ -20,7 +20,7 @@ function getAddonMenuId(toppingName) {
 router.post('/', async (req, res) => {
   const client = await pool.connect();
   try {
-    const { items, paymentMethod } = req.body;
+    const { items, paymentMethod, customerPhone, pointsRedeemed } = req.body;
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
@@ -28,7 +28,11 @@ router.post('/', async (req, res) => {
     // Calculate totals
     const subtotal = items.reduce((sum, i) => sum + i.finalPrice, 0);
     const tax = subtotal * 0.0825;
-    const total = subtotal + tax;
+    // Apply points redemption discount (100 pts = $0.01, i.e. 10000 pts = $1)
+    const pointsDiscount = pointsRedeemed ? Math.min(pointsRedeemed / 10000, subtotal) : 0;
+    const discountedSubtotal = subtotal - pointsDiscount;
+    const adjustedTax = discountedSubtotal * 0.0825;
+    const total = discountedSubtotal + adjustedTax;
 
     await client.query('BEGIN');
 
@@ -44,9 +48,9 @@ router.post('/', async (req, res) => {
 
     // Insert into Order table
     await client.query(
-      `INSERT INTO "Order" (order_id, created_at, employee_id, status, subtotal, tax, total, payment_method)
-       VALUES ($1, NOW(), $2, 'Completed', $3, $4, $5, $6)`,
-      [orderId, employeeId, subtotal, tax, total, paymentMethod || 'Credit']
+      `INSERT INTO "Order" (order_id, created_at, employee_id, status, subtotal, tax, total, payment_method, customer_phone)
+       VALUES ($1, NOW(), $2, 'Completed', $3, $4, $5, $6, $7)`,
+      [orderId, employeeId, discountedSubtotal, adjustedTax, total, paymentMethod || 'Credit', customerPhone || null]
     );
 
     // Get next order_item_id
@@ -105,6 +109,17 @@ router.post('/', async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    // After commit: award loyalty points ($1 total = 100 pts) and deduct redeemed points
+    if (customerPhone) {
+      const pointsEarned = Math.floor(total) * 100;
+      const pointsDelta = pointsEarned - (pointsRedeemed || 0);
+      await pool.query(
+        `UPDATE customers SET points = GREATEST(0, points + $1), updated_at = NOW() WHERE phone_number = $2`,
+        [pointsDelta, customerPhone]
+      );
+    }
+
     res.json({ success: true, orderId, total: total.toFixed(2) });
   } catch (err) {
     await client.query('ROLLBACK');

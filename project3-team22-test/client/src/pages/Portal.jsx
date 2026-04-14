@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import WeatherWidget from '../components/WeatherWidget'
 import './Portal.css'
 
 const views = [
@@ -48,6 +49,10 @@ export default function Portal() {
       <div className="portal__bg-orb portal__bg-orb--1" />
       <div className="portal__bg-orb portal__bg-orb--2" />
       <div className="portal__bg-orb portal__bg-orb--3" />
+
+      <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 100 }}>
+        <WeatherWidget />
+      </div>
 
       <div className="portal__content">
         <div className="portal__header">

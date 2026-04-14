@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import AccessibilityTools from './AccessibilityTools'
+import WeatherWidget from '../../components/WeatherWidget'
+import ChatbotWidget from '../../components/ChatbotWidget'
+import LoyaltyLogin from './LoyaltyLogin'
+import BobaCasino from './BobaCasino'
 import SmsNumpadGateway from './SmsNumpadGateway'
 import './Customer.css'
 
@@ -150,6 +154,12 @@ export default function CustomerApp() {
   const [notifyCarrier, setNotifyCarrier] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [emailSending, setEmailSending] = useState(false)
+
+  // Loyalty state
+  const [customer, setCustomer] = useState(null)       // { phone_number, points }
+  const [showLoyaltyLogin, setShowLoyaltyLogin] = useState(true)
+  const [redeemPoints, setRedeemPoints] = useState(false) // toggle at checkout
+  const [pointsToRedeem, setPointsToRedeem] = useState(0)
 
   const cycleFontSize = useCallback(() => {
     setFontSize(prev => {
@@ -330,6 +340,7 @@ export default function CustomerApp() {
 
   const submitOrder = useCallback(async (paymentMethod) => {
     setSubmitting(true)
+    const pointsUsed = (redeemPoints && customer) ? Math.min(customer.points, pointsToRedeem) : 0
     try {
       const response = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
@@ -344,7 +355,9 @@ export default function CustomerApp() {
             toppings: item.toppings,
           })),
           paymentMethod,
-          employeeId: 0, // Self-service kiosk
+          employeeId: 0,
+          customerPhone: customer?.phone_number || null,
+          pointsRedeemed: pointsUsed,
         }),
       })
       const data = await response.json()
@@ -354,6 +367,12 @@ export default function CustomerApp() {
         setNotifyPhone('')
         setNotifyCarrier('')
         setEmailSent(false)
+        setRedeemPoints(false)
+        // Update local points balance
+        if (customer) {
+          const earned = Math.floor(parseFloat(data.total)) * 100
+          setCustomer(prev => ({ ...prev, points: Math.max(0, prev.points + earned - pointsUsed) }))
+        }
         setView('confirmation')
       } else {
         alert('Order failed. Please try again.')
@@ -364,7 +383,7 @@ export default function CustomerApp() {
     } finally {
       setSubmitting(false)
     }
-  }, [cart])
+  }, [cart, customer, redeemPoints, pointsToRedeem])  
 
   // Auto-return from confirmation
   useEffect(() => {
@@ -401,11 +420,23 @@ export default function CustomerApp() {
 
   return (
     <div className={`kiosk ${fontSize !== 'normal' ? `kiosk--font-${fontSize}` : ''}`}>
+      {/* Loyalty Login Overlay */}
+      {showLoyaltyLogin && (
+        <LoyaltyLogin
+          onLogin={(customerData) => {
+            setCustomer(customerData)
+            setShowLoyaltyLogin(false)
+          }}
+          onSkip={() => setShowLoyaltyLogin(false)}
+        />
+      )}
+
       {/* Header */}
       <header className="kiosk__header">
         <div className="kiosk__header-brand">
           <span className="kiosk__header-icon">🐉</span>
           <h1 className="kiosk__header-title">Dragon Boba</h1>
+          <WeatherWidget />
         </div>
         <div className="kiosk__header-actions">
           {/* Accessibility Tools (Language & Font) */}
@@ -420,6 +451,22 @@ export default function CustomerApp() {
             cycleFontSize={cycleFontSize}
             FONT_SIZE_LABELS={FONT_SIZE_LABELS}
           />
+          {customer && (
+            <button
+              className="kiosk__points-badge"
+              onClick={() => setShowLoyaltyLogin(true)}
+              title="Your loyalty points"
+            >
+              ⭐ {customer.points.toLocaleString()} pts
+            </button>
+          )}
+          <button
+            className="kiosk__casino-btn"
+            onClick={() => setView(view === 'casino' ? 'categories' : 'casino')}
+            title="Boba Casino"
+          >
+            🎰
+          </button>
           {view !== 'confirmation' && (
             <button
               className="kiosk__cart-btn"
@@ -447,6 +494,11 @@ export default function CustomerApp() {
 
       {/* Main Content */}
       <main className="kiosk__main">
+        {/* ===== CASINO VIEW ===== */}
+        {view === 'casino' && (
+          <BobaCasino customer={customer} setCustomer={setCustomer} />
+        )}
+
         {/* ===== CATEGORIES VIEW ===== */}
         {view === 'categories' && (
           <div className="kiosk__categories fade-in">
@@ -721,6 +773,31 @@ export default function CustomerApp() {
               {t(UI_STRINGS.total)}: <strong>${cartTotal.toFixed(2)}</strong>
             </p>
 
+            {/* Redeem Points */}
+            {customer && customer.points > 0 && (
+              <div className="kiosk__redeem">
+                <div className="kiosk__redeem-info">
+                  <span className="kiosk__redeem-label">⭐ Use Loyalty Points</span>
+                  <span className="kiosk__redeem-balance">
+                    {customer.points.toLocaleString()} pts available
+                    {redeemPoints && ` · -$${(Math.min(customer.points, pointsToRedeem) / 10000).toFixed(2)} off`}
+                  </span>
+                </div>
+                <button
+                  className={`kiosk__redeem-toggle ${redeemPoints ? 'kiosk__redeem-toggle--on' : 'kiosk__redeem-toggle--off'}`}
+                  onClick={() => {
+                    const newVal = !redeemPoints
+                    setRedeemPoints(newVal)
+                    // Default: redeem ALL points up to order total
+                    if (newVal) setPointsToRedeem(Math.min(customer.points, Math.floor(cartTotal * 10000)))
+                    else setPointsToRedeem(0)
+                  }}
+                >
+                  {redeemPoints ? 'ON ✓' : 'OFF'}
+                </button>
+              </div>
+            )}
+
             <div className="kiosk__payment-grid">
               {[
                 { method: UI_STRINGS.cash, icon: '💵', desc: UI_STRINGS.payAtCounter },
@@ -790,6 +867,8 @@ export default function CustomerApp() {
           </div>
         )}
       </main>
+
+      <ChatbotWidget />
     </div>
   )
 }

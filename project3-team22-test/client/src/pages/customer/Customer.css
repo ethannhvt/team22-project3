@@ -1176,3 +1176,148 @@
 .kiosk--font-xlarge .kiosk__confirmation-msg { font-size: 2rem; }
 .kiosk--font-xlarge .kiosk__back-btn { font-size: 1.6rem; }
 .kiosk--font-xlarge .kiosk__header-title { font-size: 2.4rem; }
+
+/* ============================================
+   Loyalty System
+   ============================================ */
+
+/* Overlay */
+.loyalty-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.loyalty-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 36px;
+  width: 380px;
+  max-width: 95vw;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loyalty-modal__icon { font-size: 3rem; margin-bottom: 8px; }
+.loyalty-modal__title { font-size: 1.5rem; font-weight: 800; color: #2A0845; margin: 0 0 6px; }
+.loyalty-modal__subtitle { font-size: 0.875rem; color: #666; margin: 0 0 20px; }
+
+.loyalty-modal__display {
+  background: #F3F0FF;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2A0845;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.loyalty-modal__numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.loyalty-modal__key {
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: #F5F5F5;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.loyalty-modal__key:active { transform: scale(0.93); }
+.loyalty-modal__key:hover { background: #E8E0FF; }
+.loyalty-modal__key--action { background: #EEE; font-size: 1rem; color: #555; }
+
+.loyalty-modal__actions { display: flex; flex-direction: column; gap: 8px; }
+
+.loyalty-modal__btn {
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.loyalty-modal__btn:active { transform: scale(0.97); }
+.loyalty-modal__btn--primary { background: #D4A847; color: #2A0845; }
+.loyalty-modal__btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.loyalty-modal__btn--ghost { background: transparent; color: #888; font-weight: 500; font-size: 0.9rem; }
+
+/* Points Badge in header */
+.kiosk__points-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #D4A847, #F0C060);
+  color: #2A0845;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(212,168,71,0.3);
+  transition: transform 0.2s;
+}
+.kiosk__points-badge:hover { transform: translateY(-1px); }
+
+/* Redeem Points section */
+.kiosk__redeem {
+  background: #FFF8E7;
+  border: 2px solid #D4A847;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.kiosk__redeem-info { display: flex; flex-direction: column; gap: 2px; }
+.kiosk__redeem-label { font-weight: 700; color: #2A0845; font-size: 1rem; }
+.kiosk__redeem-balance { font-size: 0.85rem; color: #888; }
+.kiosk__redeem-toggle {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.kiosk__redeem-toggle--on { background: #D4A847; color: #2A0845; }
+.kiosk__redeem-toggle--off { background: #EEE; color: #555; }
+
+/* Casino button in header */
+.kiosk__casino-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #4A154B, #2a0845);
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(74,21,75,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kiosk__casino-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(74,21,75,0.6);
+}
+

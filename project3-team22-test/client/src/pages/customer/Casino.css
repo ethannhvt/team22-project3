@@ -1,0 +1,601 @@
+/* ============================================
+   Boba Casino — Premium Dark Theme
+   ============================================ */
+
+.casino {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #0d001a 0%, #1a0035 50%, #0d0020 100%);
+  color: white;
+  overflow-y: auto;
+}
+
+.casino__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid rgba(212,168,71,0.2);
+}
+
+.casino__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #D4A847, #F0C060);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.casino__balance {
+  background: rgba(212,168,71,0.15);
+  border: 1px solid #D4A847;
+  color: #F0C060;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.casino__tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px 0;
+}
+
+.casino__tab {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid rgba(212,168,71,0.3);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.casino__tab--active {
+  background: rgba(212,168,71,0.2);
+  border-color: #D4A847;
+  color: #F0C060;
+}
+
+.casino__content {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+/* Gate (not logged in) */
+.casino-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(160deg, #0d001a 0%, #1a0035 100%);
+  color: white;
+  gap: 16px;
+}
+.casino-gate__icon { font-size: 4rem; }
+.casino-gate__title { font-size: 1.8rem; font-weight: 800; color: #D4A847; }
+.casino-gate__msg { color: rgba(255,255,255,0.7); font-size: 1rem; max-width: 300px; }
+
+/* Game wrapper */
+.casino-game {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.casino-game__title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #F0C060;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.casino-game__balance {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+/* Bet chips */
+.casino-bet { text-align: center; margin-bottom: 20px; }
+.casino-bet__label { color: rgba(255,255,255,0.7); margin-bottom: 10px; font-size: 0.9rem; }
+
+.casino-bet__chips {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.casino-chip {
+  padding: 12px 16px;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  border: 3px solid #D4A847;
+  background: rgba(212,168,71,0.1);
+  color: #F0C060;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.casino-chip--active { background: #D4A847; color: #1a0035; transform: scale(1.1); }
+.casino-chip--disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Deal / Spin button */
+.casino-deal-btn {
+  margin-top: 16px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #D4A847, #F0C060);
+  color: #1a0035;
+  border: none;
+  border-radius: 24px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(212,168,71,0.4);
+}
+.casino-deal-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,168,71,0.5); }
+.casino-deal-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Blackjack table */
+.casino-table { display: flex; flex-direction: column; gap: 20px; }
+
+.casino-hand { text-align: center; }
+.casino-hand__label { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; }
+
+.casino-cards { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+.casino-card {
+  width: 56px;
+  height: 80px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #222;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  gap: 2px;
+}
+.casino-card--red { color: #E74C3C; }
+.casino-card--face-down {
+  background: linear-gradient(135deg, #2a0845, #4A154B);
+  font-size: 2rem;
+  color: #D4A847;
+}
+
+/* Card slides in from top when revealed */
+.casino-card--deal-in {
+  animation: dealIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dealIn {
+  from { transform: translateY(-30px) scale(0.8); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.casino-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.casino-btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.casino-btn:active { transform: scale(0.95); }
+.casino-btn--hit { background: #27AE60; color: white; }
+.casino-btn--stand { background: #E74C3C; color: white; }
+
+.casino-result { text-align: center; }
+.casino-result__message { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; }
+
+/* ============================================
+   Dice Game (Stake-style)
+   ============================================ */
+
+.dice-game { display: flex; flex-direction: column; gap: 16px; }
+
+/* Big rolled number display */
+.dice-result-number {
+  text-align: center;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.25);
+  transition: color 0.3s, text-shadow 0.3s;
+  letter-spacing: -1px;
+  line-height: 1;
+  padding: 8px 0;
+}
+.dice-result--win {
+  color: #27AE60;
+  text-shadow: 0 0 24px rgba(39,174,96,0.5);
+}
+.dice-result--lose {
+  color: #E74C3C;
+  text-shadow: 0 0 24px rgba(231,76,60,0.5);
+}
+
+/* Bar */
+.dice-bar-wrapper {
+  position: relative;
+  margin: 8px 0 28px;
+}
+
+.dice-bar {
+  height: 12px;
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+}
+
+.dice-bar__win {
+  background: linear-gradient(90deg, #27AE60, #2ECC71);
+  transition: width 0.2s;
+}
+
+.dice-bar__lose {
+  background: rgba(255,255,255,0.08);
+  transition: width 0.2s;
+}
+
+/* Moving ball indicator */
+.dice-ball {
+  position: absolute;
+  top: -10px;
+  transform: translateX(-50%);
+  background: white;
+  color: #111;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: left 0.05s linear;
+}
+.dice-ball--win { background: #27AE60; color: white; }
+.dice-ball--lose { background: #E74C3C; color: white; }
+
+/* Target marker */
+.dice-target-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dice-target-marker__line {
+  width: 2px;
+  height: 12px;
+  background: #D4A847;
+}
+.dice-target-marker__label {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #D4A847;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Bar labels */
+.dice-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 20px;
+}
+
+/* Direction toggle */
+.dice-direction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.dice-dir-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dice-dir-btn--active {
+  border-color: #27AE60;
+  background: rgba(39,174,96,0.15);
+  color: #2ECC71;
+}
+.dice-dir-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.dice-dir-divider {
+  padding: 8px 12px;
+  background: rgba(212,168,71,0.15);
+  border: 1px solid #D4A847;
+  border-radius: 8px;
+  color: #D4A847;
+  font-weight: 800;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* Stats row */
+.dice-controls { display: flex; flex-direction: column; gap: 12px; }
+
+.dice-stat { display: flex; flex-direction: column; gap: 4px; }
+
+.dice-stat__label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dice-stat__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dice-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+  accent-color: #27AE60;
+  cursor: pointer;
+}
+
+.dice-stat__value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: white;
+  min-width: 48px;
+  text-align: right;
+}
+.dice-stat__value--gold { color: #D4A847; }
+.dice-stat__value--green { color: #27AE60; }
+
+.dice-stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dice-stat--box {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+/* Result banner */
+.dice-banner {
+  text-align: center;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.dice-banner--win { background: rgba(39,174,96,0.2); color: #2ECC71; border: 1px solid #27AE60; }
+.dice-banner--lose { background: rgba(231,76,60,0.2); color: #E74C3C; border: 1px solid #E74C3C; }
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+
+.roulette-wheel-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roulette-wheel {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 4px solid #D4A847;
+  background: conic-gradient(
+    #E74C3C 0deg,
+    #222 10deg,
+    #E74C3C 20deg,
+    #222 30deg,
+    #27AE60 40deg,
+    #E74C3C 50deg,
+    #222 60deg,
+    #E74C3C 70deg,
+    #222 80deg,
+    #E74C3C 90deg,
+    #222 100deg,
+    #E74C3C 110deg,
+    #222 120deg,
+    #E74C3C 130deg,
+    #222 140deg,
+    #E74C3C 150deg,
+    #222 160deg,
+    #E74C3C 170deg,
+    #222 180deg,
+    #E74C3C 190deg,
+    #222 200deg,
+    #E74C3C 210deg,
+    #222 220deg,
+    #E74C3C 230deg,
+    #222 240deg,
+    #E74C3C 250deg,
+    #222 260deg,
+    #E74C3C 270deg,
+    #222 280deg,
+    #E74C3C 290deg,
+    #222 300deg,
+    #E74C3C 310deg,
+    #222 320deg,
+    #E74C3C 330deg,
+    #222 340deg,
+    #E74C3C 350deg,
+    #222 360deg
+  );
+  box-shadow: 0 0 24px rgba(212,168,71,0.4);
+  position: relative;
+}
+
+.roulette-segment {
+  position: absolute;
+  display: none; /* visual handled by conic-gradient */
+}
+
+.roulette-ball {
+  position: absolute;
+  font-size: 1.8rem;
+  z-index: 10;
+  filter: drop-shadow(0 0 6px rgba(212,168,71,0.8));
+}
+
+/* Center number bubble */
+.roulette-result-bubble {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: white;
+  z-index: 10;
+  border: 3px solid #D4A847;
+  transition: background 0.4s;
+  box-shadow: 0 0 16px rgba(0,0,0,0.5);
+}
+
+/* Fixed pointer caret at top of wheel */
+.roulette-pointer {
+  position: absolute;
+  top: -14px;
+  font-size: 1.4rem;
+  color: #D4A847;
+  z-index: 11;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+
+/* Result announcement below wheel */
+.roulette-landed {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.roulette-landed__number {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: white;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.2);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.roulette-bets { text-align: center; }
+
+.roulette-bet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.roulette-bet-btn {
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+.roulette-bet-btn--active { border-color: #D4A847; background: rgba(212,168,71,0.2); color: #F0C060; }
+.roulette-payout { font-size: 0.8rem; opacity: 0.7; }
+
+.roulette-number-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.roulette-num-btn {
+  padding: 6px 2px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: white;
+}
+.roulette-num-btn--red { background: #922B21; }
+.roulette-num-btn--black { background: #1a1a1a; }
+.roulette-num-btn--green { background: #1A5E39; }
+.roulette-num-btn--active { outline: 2px solid #F0C060; transform: scale(1.1); }
+
+.roulette-number-note { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
