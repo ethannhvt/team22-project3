@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import emailjs from '@emailjs/browser'
 import AccessibilityTools from './AccessibilityTools'
 import SmsNumpadGateway from './SmsNumpadGateway'
 import './Customer.css'
@@ -306,24 +305,23 @@ export default function CustomerApp() {
     const targetEmail = `${notifyPhone}${notifyCarrier}`
 
     try {
-      const templateParams = {
-        to_email: targetEmail,
-        order_number: orderResult?.orderId,
-        total: orderResult?.total
-      };
-
-      await emailjs.send(
-        'service_kdyuic7', // User's Service ID
-        'template_n1qu4mq', // User's Template ID
-        templateParams,
-        {
-          publicKey: 'eBVINmQD944q8UT1q' // User's Public Key
-        }
-      );
-      
-      setEmailSent(true)
+      const res = await fetch(`${API_BASE}/email/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: targetEmail,
+          orderId: orderResult?.orderId,
+          total: orderResult?.total,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setEmailSent(true)
+      } else {
+        alert('Could not schedule text. Please try again.')
+      }
     } catch (err) {
-      console.error('EmailJS notify error:', err)
+      console.error('Email notify error:', err)
       alert('Connection error scheduling text message.')
     } finally {
       setEmailSending(false)
