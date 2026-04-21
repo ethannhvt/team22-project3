@@ -1374,29 +1374,30 @@
 .kiosk__cart-qty-controls {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(74, 21, 75, 0.05); /* very light purple */
+  border: 1px solid rgba(74, 21, 75, 0.15); /* darker purple border */
   border-radius: 12px;
   overflow: hidden;
 }
 
 .kiosk__cart-qty-btn {
-  background: rgba(255,255,255,0.05);
+  background: rgba(74, 21, 75, 0.05);
   border: none;
-  color: white;
+  color: #4A154B; /* dark purple brand color */
   width: 32px;
   height: 32px;
   font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .kiosk__cart-qty-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.15);
+  background: rgba(74, 21, 75, 0.15); /* darker on hover */
+  color: #2a0845;
 }
 
 .kiosk__cart-qty-btn:disabled {
@@ -1409,6 +1410,7 @@
   text-align: center;
   font-weight: bold;
   font-size: 0.95rem;
+  color: #2a0845; /* Dark contrasting color */
 }
 
 
