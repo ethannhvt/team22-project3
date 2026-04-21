@@ -32,6 +32,12 @@ function DataTable({ columns, rows, selectedRow, onSelect }) {
 function MenuPanel() {
   const [items, setItems] = useState([])
   const [sel, setSel] = useState(null)
+  
+  // Update state (only price is updated)
+  const [updatePriceValue, setUpdatePriceValue] = useState('')
+
+  // Modal / Add New Item state
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [name, setName] = useState(''), [cat, setCat] = useState(''), [price, setPrice] = useState('')
   
   // Ingredients state
@@ -73,15 +79,16 @@ function MenuPanel() {
     if (!name || !cat || !price) { alert('Name, Category and Price are required.'); return }
     await fetch(`${API}/menu`, { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ name, category: cat, price: parseFloat(price), ingredients }) })
-    setName(''); setCat(''); setPrice(''); setIngredients([]); setSel(null); load()
+    setName(''); setCat(''); setPrice(''); setIngredients([]); setSel(null); setIsModalOpen(false); load();
     alert(`'${name}' added to Menu!`)
   }
   const updatePrice = async () => {
-    if (sel === null) return
+    if (sel === null) { alert("Please select an item to update."); return; }
+    if (!updatePriceValue) { alert("Please enter a new price."); return; }
     const id = items[sel].menu_item_id
     await fetch(`${API}/menu/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ price: parseFloat(price) }) })
-    setPrice(''); load()
+      body: JSON.stringify({ price: parseFloat(updatePriceValue) }) })
+    setUpdatePriceValue(''); load()
   }
   const removeItem = async () => {
     if (sel === null) return
@@ -97,59 +104,93 @@ function MenuPanel() {
         rows={items.map(i => [i.menu_item_id, i.item_name, i.category, `$${parseFloat(i.price).toFixed(2)}`])}
         selectedRow={sel} onSelect={setSel}
       />
-      <div className="mgr-form-split">
-        <div className="mgr-form-section">
-          <h3>Menu Item Details</h3>
-          <div className="mgr-form-row">
-            <label>Name:</label><input value={name} onChange={e=>setName(e.target.value)} />
-          </div>
-          <div className="mgr-form-row">
-            <label>Category:</label><input value={cat} onChange={e=>setCat(e.target.value)} />
-          </div>
-          <div className="mgr-form-row">
-            <label>Price: $</label><input type="number" min="0" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} style={{width:80}} />
-          </div>
-          <div className="mgr-form-actions">
-            <button onClick={addItem}>Add New Drink</button>
-            <button onClick={updatePrice} className="mgr-btn--alt">Update Price</button>
-            <button className="mgr-btn--red" onClick={removeItem}>Remove Item</button>
-          </div>
-        </div>
+      
+      {/* Base UI Bottom Row */}
+      <div className="mgr-form mgr-form-base">
+        <label>Update Price: $</label>
+        <input 
+          type="number" 
+          min="0" 
+          step="0.01" 
+          value={updatePriceValue} 
+          onChange={e=>setUpdatePriceValue(e.target.value)} 
+          style={{width:70}} 
+          placeholder="New $"
+        />
+        <button onClick={updatePrice} className="mgr-btn--alt">Update Selected Price</button>
+        <button className="mgr-btn--red" onClick={removeItem}>Remove Selected Item</button>
         
-        <div className="mgr-form-section mgr-ingredients-builder">
-          <h3>Recipe Builder <span>(For New Drinks)</span></h3>
-          <div className="mgr-form-row">
-            <select value={ingSelection} onChange={e=>setIngSelection(e.target.value)}>
-              <option value="new">-- Create New Ingredient --</option>
-              {inventory.map(i => <option key={i.inventory_item_id} value={i.inventory_item_id}>{i.item_name}</option>)}
-            </select>
-          </div>
-          {ingSelection === 'new' && (
-            <div className="mgr-form-row">
-              <label>Name:</label><input value={ingName} onChange={e=>setIngName(e.target.value)} placeholder="e.g. Matcha Powder" />
-            </div>
-          )}
-          <div className="mgr-form-row mgr-form-row-compact">
-            <label>Amount:</label><input type="number" min="0" step="0.1" value={ingAmount} onChange={e=>setIngAmount(e.target.value)} style={{width:60}} />
-            <label>Unit:</label><input value={ingUnit} onChange={e=>setIngUnit(e.target.value)} style={{width:60}} placeholder="g, ml" />
-            <button type="button" onClick={handleAddIngredient} className="mgr-btn-small">Add</button>
-          </div>
-          
-          {ingredients.length > 0 && (
-            <div className="mgr-ingredients-list">
-              <h4>Included Ingredients:</h4>
-              <ul>
-                {ingredients.map((ing, idx) => (
-                  <li key={idx}>
-                    <span className="ing-info">{ing.amount} {ing.unit} {ing.name} {ing.isNew && <span className="mgr-badge">NEW</span>}</span>
-                    <button className="mgr-btn-tiny mgr-btn--red" onClick={() => removeIngredient(idx)}>✕</button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        <div style={{ marginLeft: 'auto' }}>
+          <button onClick={() => setIsModalOpen(true)} className="mgr-btn-primary">
+            + Add New Item
+          </button>
         </div>
       </div>
+
+      {/* Pop-up Modal */}
+      {isModalOpen && (
+        <div className="mgr-modal-overlay">
+          <div className="mgr-modal-content">
+            <button className="mgr-modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
+            
+            <h2 style={{marginTop: 0, marginBottom: '20px'}}>Create New Drink</h2>
+            
+            <div className="mgr-form-section">
+              <h3>Drink Details</h3>
+              <div className="mgr-form-row">
+                <label>Name:</label><input value={name} onChange={e=>setName(e.target.value)} />
+              </div>
+              <div className="mgr-form-row">
+                <label>Category:</label><input value={cat} onChange={e=>setCat(e.target.value)} />
+              </div>
+              <div className="mgr-form-row">
+                <label>Price: $</label><input type="number" min="0" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} style={{width:80}} />
+              </div>
+            </div>
+            
+            <div className="mgr-form-section mgr-ingredients-builder" style={{ marginTop: '20px' }}>
+              <h3>Recipe Builder</h3>
+              <div className="mgr-form-row">
+                <select value={ingSelection} onChange={e=>setIngSelection(e.target.value)} style={{ flex: 1 }}>
+                  <option value="new">-- Create New Ingredient --</option>
+                  {inventory.map(i => <option key={i.inventory_item_id} value={i.inventory_item_id}>{i.item_name}</option>)}
+                </select>
+              </div>
+              {ingSelection === 'new' && (
+                <div className="mgr-form-row">
+                  <label>Name:</label><input value={ingName} onChange={e=>setIngName(e.target.value)} placeholder="e.g. Matcha Powder" />
+                </div>
+              )}
+              <div className="mgr-form-row mgr-form-row-compact">
+                <label>Amount:</label><input type="number" min="0" step="0.1" value={ingAmount} onChange={e=>setIngAmount(e.target.value)} style={{width:60}} />
+                <label>Unit:</label><input value={ingUnit} onChange={e=>setIngUnit(e.target.value)} style={{width:60}} placeholder="g" />
+                <button type="button" onClick={handleAddIngredient} className="mgr-btn-small">Add</button>
+              </div>
+              
+              {ingredients.length > 0 && (
+                <div className="mgr-ingredients-list">
+                  <h4>Included Ingredients:</h4>
+                  <ul>
+                    {ingredients.map((ing, idx) => (
+                      <li key={idx}>
+                        <span className="ing-info">{ing.amount} {ing.unit} {ing.name} {ing.isNew && <span className="mgr-badge">NEW</span>}</span>
+                        <button className="mgr-btn-tiny mgr-btn--red" onClick={() => removeIngredient(idx)}>✕</button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: '30px', textAlign: 'right' }}>
+              <button onClick={addItem} className="mgr-btn-primary" style={{ padding: '10px 20px', fontSize: '1.05rem' }}>
+                Save & Add Drink
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   )
 }
