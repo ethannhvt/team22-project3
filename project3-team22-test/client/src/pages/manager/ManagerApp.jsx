@@ -88,9 +88,23 @@ function InventoryPanel() {
   useEffect(() => { load() }, [])
 
   const addItem = async () => {
+    if (parseFloat(qty) < 0 || parseFloat(min) < 0) {
+      alert("Quantities cannot be negative."); return;
+    }
     await fetch(`${API}/inventory`, { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ name: nameV, qty: parseFloat(qty), min: parseFloat(min), unit, supplierId: parseInt(supId)||null }) })
     setNameV(''); setQty(''); setMin(''); setUnit(''); setSupId(''); load()
+  }
+  const updateQty = async () => {
+    if (sel === null) return
+    if (qty === '' || parseFloat(qty) < 0) {
+      alert("Quantity must be a positive number."); return;
+    }
+    const id = items[sel].inventory_item_id
+    await fetch(`${API}/inventory/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ qty: parseFloat(qty) }) })
+    setQty(''); load()
+    alert("Quantity successfully updated/restocked!")
   }
   const removeItem = async () => {
     if (sel === null) return
@@ -99,8 +113,15 @@ function InventoryPanel() {
     setSel(null); load()
   }
 
+  const lowStockItems = items.filter(i => parseFloat(i.current_quantity) <= parseFloat(i.minimum_amount));
+
   return (
     <div className="mgr-panel">
+      {lowStockItems.length > 0 && (
+        <div style={{ background: '#ffebee', color: '#c62828', padding: '12px', borderRadius: '4px', marginBottom: '16px', borderLeft: '4px solid #c62828' }}>
+          <strong>⚠️ Low Stock Alert:</strong> {lowStockItems.length} item(s) need restocking: {lowStockItems.map(i => i.item_name).join(', ')}
+        </div>
+      )}
       <DataTable
         columns={['ID','Item Name','Quantity','Min Amount','Unit','Last Updated','Supplier ID']}
         rows={items.map(i=>[i.inventory_item_id, i.item_name, i.current_quantity, i.minimum_amount, i.unit,
@@ -109,10 +130,11 @@ function InventoryPanel() {
       />
       <div className="mgr-form">
         <label>Name:</label><input value={nameV} onChange={e=>setNameV(e.target.value)} style={{width:90}} />
-        <label>Qty:</label><input value={qty} onChange={e=>setQty(e.target.value)} style={{width:60}} />
-        <label>Min:</label><input value={min} onChange={e=>setMin(e.target.value)} style={{width:60}} />
+        <label>Qty:</label><input type="number" min="0" value={qty} onChange={e=>setQty(e.target.value)} style={{width:60}} />
+        <label>Min:</label><input type="number" min="0" value={min} onChange={e=>setMin(e.target.value)} style={{width:60}} />
         <label>Unit:</label><input value={unit} onChange={e=>setUnit(e.target.value)} style={{width:60}} />
         <label>Sup ID:</label><input value={supId} onChange={e=>setSupId(e.target.value)} style={{width:50}} />
+        <button onClick={updateQty}>Update Selected Qty</button>
         <button onClick={addItem}>Add New</button>
         <button className="mgr-btn--red" onClick={removeItem}>Remove Selected</button>
       </div>

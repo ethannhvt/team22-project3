@@ -39,4 +39,17 @@ router.delete('/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// PATCH /api/inventory/:id (update stock quantity)
+router.patch('/:id', async (req, res) => {
+  const { qty } = req.body;
+  try {
+    if (qty < 0) return res.status(400).json({ error: 'Quantity cannot be negative' });
+    await pool.query(
+      'UPDATE inventory SET current_quantity = $1, last_updated = NOW() WHERE inventory_item_id = $2',
+      [qty, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
