@@ -249,8 +249,8 @@ export default function CustomerApp() {
   }, [])
 
   // Cart helpers
-  const cartCount = cart.length
-  const cartSubtotal = cart.reduce((sum, item) => sum + item.finalPrice, 0)
+  const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0)
+  const cartSubtotal = cart.reduce((sum, item) => sum + (item.finalPrice * (item.quantity || 1)), 0)
   const cartTax = cartSubtotal * 0.0825
   const cartTotal = cartSubtotal + cartTax
 
@@ -271,6 +271,11 @@ export default function CustomerApp() {
         toppings,
       } : i))
       setEditingItemId(null)
+      // Fix #3: return to cart after editing, not categories
+      setSugar('100%')
+      setIce('Regular Ice')
+      setToppings([])
+      setView('cart')
     } else {
       setCart(prev => [...prev, {
         id: Date.now() + Math.random(),
@@ -281,18 +286,27 @@ export default function CustomerApp() {
         sugarLevel: sugar,
         iceLevel: ice,
         toppings,
+        quantity: 1,
       }])
+      setSugar('100%')
+      setIce('Regular Ice')
+      setToppings([])
+      setView('categories')
     }
-
-    // Reset and go back to categories
-    setSugar('100%')
-    setIce('Regular Ice')
-    setToppings([])
-    setView('categories')
   }, [selectedItem, sugar, ice, toppings, editingItemId])
 
   const removeFromCart = useCallback((itemId) => {
     setCart(prev => prev.filter(i => i.id !== itemId))
+  }, [])
+
+  const updateCartQuantity = useCallback((itemId, delta) => {
+    setCart(prev => prev.map(i => {
+      if (i.id === itemId) {
+        const newQ = (i.quantity || 1) + delta
+        return { ...i, quantity: Math.max(1, newQ) }
+      }
+      return i
+    }))
   }, [])
 
   const editCartItem = useCallback((itemId) => {
@@ -385,12 +399,17 @@ export default function CustomerApp() {
     }
   }, [cart, customer, redeemPoints, pointsToRedeem])  
 
-  // Auto-return from confirmation
+  // Auto-return from confirmation + auto-logout
   useEffect(() => {
     if (view === 'confirmation') {
       const timer = setTimeout(() => {
         setOrderResult(null)
         setView('categories')
+        // Auto-logout: reset customer state so next user starts fresh
+        setCustomer(null)
+        setShowLoyaltyLogin(true)
+        setRedeemPoints(false)
+        setPointsToRedeem(0)
       }, 25000)
       return () => clearTimeout(timer)
     }
@@ -433,7 +452,12 @@ export default function CustomerApp() {
 
       {/* Header */}
       <header className="kiosk__header">
-        <div className="kiosk__header-brand">
+        {/* Fix #5: Logo click → home */}
+        <div
+          className="kiosk__header-brand kiosk__header-brand--clickable"
+          onClick={() => setView('categories')}
+          title="Go to main menu"
+        >
           <span className="kiosk__header-icon">🐉</span>
           <h1 className="kiosk__header-title">Dragon Boba</h1>
           <WeatherWidget />
@@ -451,13 +475,22 @@ export default function CustomerApp() {
             cycleFontSize={cycleFontSize}
             FONT_SIZE_LABELS={FONT_SIZE_LABELS}
           />
-          {customer && (
+          {/* Fix #7/#8: Show points if signed in, or a Sign In button if not */}
+          {customer ? (
             <button
               className="kiosk__points-badge"
               onClick={() => setShowLoyaltyLogin(true)}
               title="Your loyalty points"
             >
               ⭐ {customer.points.toLocaleString()} pts
+            </button>
+          ) : (
+            <button
+              className="kiosk__signin-btn"
+              onClick={() => setShowLoyaltyLogin(true)}
+              title="Sign in for rewards"
+            >
+              🔑 Sign In
             </button>
           )}
           <button
@@ -467,9 +500,10 @@ export default function CustomerApp() {
           >
             🎰
           </button>
+          {/* Fix #1: Cart always visible, pulses when it has items */}
           {view !== 'confirmation' && (
             <button
-              className="kiosk__cart-btn"
+              className={`kiosk__cart-btn ${cartCount > 0 ? 'kiosk__cart-btn--has-items' : ''}`}
               onClick={() => setView('cart')}
             >
               <span className="kiosk__cart-icon">🛒</span>
@@ -634,24 +668,29 @@ export default function CustomerApp() {
               <div className="kiosk__option-group">
                 <h3 className="kiosk__option-label">{t(UI_STRINGS.addTopping)} (Multiple Allowed)</h3>
                 <div className="kiosk__option-row">
-                  {TOPPINGS.filter(t => t.name !== 'None').map(top => (
-                    <button
-                      key={top.name}
-                      className={`kiosk__option-btn kiosk__option-btn--topping ${toppings.includes(top.name) ? 'kiosk__option-btn--active' : ''}`}
-                      onClick={() => {
-                        setToppings(prev => 
-                          prev.includes(top.name) 
-                            ? prev.filter(x => x !== top.name) 
-                            : [...prev, top.name]
-                        )
-                      }}
-                    >
-                      <span>{t(top.name)}</span>
-                      {top.price > 0 && (
-                        <span className="kiosk__option-price">+${top.price.toFixed(2)}</span>
-                      )}
-                    </button>
-                  ))}
+                  {TOPPINGS.filter(top => top.name !== 'None').map(top => {
+                    const isSelected = toppings.includes(top.name)
+                    return (
+                      <button
+                        key={top.name}
+                        className={`kiosk__option-btn kiosk__option-btn--topping ${isSelected ? 'kiosk__option-btn--active' : ''}`}
+                        onClick={() => {
+                          // Fix #2: use snapshot value to avoid stale closure bug
+                          setToppings(prev => {
+                            const already = prev.includes(top.name)
+                            return already
+                              ? prev.filter(x => x !== top.name)
+                              : [...prev, top.name]
+                          })
+                        }}
+                      >
+                        <span>{t(top.name)}</span>
+                        {top.price > 0 && (
+                          <span className="kiosk__option-price">+${top.price.toFixed(2)}</span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -714,7 +753,21 @@ export default function CustomerApp() {
                         </div>
                       </div>
                       <div className="kiosk__cart-item-right">
-                        <span className="kiosk__cart-item-price">${item.finalPrice.toFixed(2)}</span>
+                        <span className="kiosk__cart-item-price">${(item.finalPrice * (item.quantity || 1)).toFixed(2)}</span>
+                        
+                        <div className="kiosk__cart-qty-controls">
+                          <button 
+                            className="kiosk__cart-qty-btn"
+                            onClick={() => updateCartQuantity(item.id, -1)}
+                            disabled={(item.quantity || 1) <= 1}
+                          >−</button>
+                          <span className="kiosk__cart-qty-val">{item.quantity || 1}</span>
+                          <button 
+                            className="kiosk__cart-qty-btn"
+                            onClick={() => updateCartQuantity(item.id, 1)}
+                          >+</button>
+                        </div>
+                        
                         <div className="kiosk__cart-item-actions">
                           <button
                             className="kiosk__cart-edit-btn"
@@ -770,33 +823,44 @@ export default function CustomerApp() {
             </button>
             <h2 className="kiosk__section-title">{t(UI_STRINGS.howToPay)}</h2>
             <p className="kiosk__checkout-total-display">
-              {t(UI_STRINGS.total)}: <strong>${cartTotal.toFixed(2)}</strong>
+              {t(UI_STRINGS.total)}: <strong>
+                ${redeemPoints ? (cartTotal - (pointsToRedeem / 10000)).toFixed(2) : cartTotal.toFixed(2)}
+              </strong>
+              {redeemPoints && (
+                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', marginLeft: '12px', fontWeight: 'normal' }}>
+                  ${cartTotal.toFixed(2)}
+                </span>
+              )}
             </p>
 
-            {/* Redeem Points */}
-            {customer && customer.points > 0 && (
-              <div className="kiosk__redeem">
-                <div className="kiosk__redeem-info">
-                  <span className="kiosk__redeem-label">⭐ Use Loyalty Points</span>
-                  <span className="kiosk__redeem-balance">
-                    {customer.points.toLocaleString()} pts available
-                    {redeemPoints && ` · -$${(Math.min(customer.points, pointsToRedeem) / 10000).toFixed(2)} off`}
-                  </span>
+            {/* Fix #6: Clearer points redemption with dollar amount shown upfront */}
+            {customer && customer.points > 0 && (() => {
+              const maxDiscount = Math.min(customer.points, Math.floor(cartTotal * 10000))
+              const dollarSaved = (maxDiscount / 10000).toFixed(2)
+              return (
+                <div className="kiosk__redeem">
+                  <div className="kiosk__redeem-info">
+                    <span className="kiosk__redeem-label">⭐ Loyalty Discount</span>
+                    <span className="kiosk__redeem-balance">
+                      {redeemPoints
+                        ? `Saving $${dollarSaved} — new total: $${(cartTotal - parseFloat(dollarSaved)).toFixed(2)}`
+                        : `You have ${customer.points.toLocaleString()} pts = $${dollarSaved} off`}
+                    </span>
+                  </div>
+                  <button
+                    className={`kiosk__redeem-toggle ${redeemPoints ? 'kiosk__redeem-toggle--on' : 'kiosk__redeem-toggle--off'}`}
+                    onClick={() => {
+                      const newVal = !redeemPoints
+                      setRedeemPoints(newVal)
+                      if (newVal) setPointsToRedeem(maxDiscount)
+                      else setPointsToRedeem(0)
+                    }}
+                  >
+                    {redeemPoints ? '✓ Applied' : 'Apply'}
+                  </button>
                 </div>
-                <button
-                  className={`kiosk__redeem-toggle ${redeemPoints ? 'kiosk__redeem-toggle--on' : 'kiosk__redeem-toggle--off'}`}
-                  onClick={() => {
-                    const newVal = !redeemPoints
-                    setRedeemPoints(newVal)
-                    // Default: redeem ALL points up to order total
-                    if (newVal) setPointsToRedeem(Math.min(customer.points, Math.floor(cartTotal * 10000)))
-                    else setPointsToRedeem(0)
-                  }}
-                >
-                  {redeemPoints ? 'ON ✓' : 'OFF'}
-                </button>
-              </div>
-            )}
+              )
+            })()}
 
             <div className="kiosk__payment-grid">
               {[

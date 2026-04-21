@@ -83,8 +83,9 @@ export default function Dice({ customer, onPointsChange }) {
         {rolledNum !== null ? rolledNum.toFixed(2) : '—'}
       </div>
 
-      {/* ── Probability bar ── */}
+      {/* ── Combined visual bar + slider (the bar IS draggable) ── */}
       <div className="dice-bar-wrapper">
+        <p className="dice-bar-hint">← Drag the bar to set your win chance →</p>
         {/* Green winning zone */}
         <div className="dice-bar">
           <div
@@ -100,6 +101,17 @@ export default function Dice({ customer, onPointsChange }) {
             style={{ width: `${100 - greenEnd}%` }}
           />
         </div>
+        {/* Transparent range input overlaid on bar — this IS the draggable control */}
+        <input
+          type="range"
+          min={MIN_WIN_CHANCE}
+          max={MAX_WIN_CHANCE}
+          value={winChance}
+          onChange={e => setWinChance(Number(e.target.value))}
+          disabled={rolling}
+          className="dice-bar-slider"
+          title={`Win Chance: ${winChance}%`}
+        />
         {/* Ball indicator */}
         {ballPos !== null && (
           <div
@@ -117,6 +129,7 @@ export default function Dice({ customer, onPointsChange }) {
         {/* Bar labels */}
         <div className="dice-bar-labels">
           <span>0.00</span>
+          <span className="dice-bar-labels__chance">Win Chance: <strong>{winChance}%</strong></span>
           <span>100.00</span>
         </div>
       </div>
@@ -140,24 +153,8 @@ export default function Dice({ customer, onPointsChange }) {
         </button>
       </div>
 
-      {/* ── Win Chance slider ── */}
+      {/* ── Stats ── */}
       <div className="dice-controls">
-        <div className="dice-stat">
-          <span className="dice-stat__label">Win Chance</span>
-          <div className="dice-stat__row">
-            <input
-              type="range"
-              min={MIN_WIN_CHANCE}
-              max={MAX_WIN_CHANCE}
-              value={winChance}
-              onChange={e => setWinChance(Number(e.target.value))}
-              disabled={rolling}
-              className="dice-slider"
-            />
-            <span className="dice-stat__value">{winChance}%</span>
-          </div>
-        </div>
-
         <div className="dice-stat-row">
           <div className="dice-stat dice-stat--box">
             <span className="dice-stat__label">Multiplier</span>

@@ -1321,3 +1321,94 @@
   box-shadow: 0 4px 16px rgba(74,21,75,0.6);
 }
 
+/* Fix #5: Clickable brand/logo */
+.kiosk__header-brand--clickable {
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.2s;
+}
+.kiosk__header-brand--clickable:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* Fix #7: Sign In button (shown when not logged in) */
+.kiosk__signin-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.kiosk__signin-btn:hover {
+  background: rgba(212,168,71,0.15);
+  border-color: #D4A847;
+  color: #D4A847;
+}
+
+/* Fix #1: Cart pulse animation when items are in cart */
+.kiosk__cart-btn--has-items {
+  animation: cartPulse 2.5s ease-in-out infinite;
+}
+@keyframes cartPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 168, 71, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(212, 168, 71, 0.25); }
+}
+
+/* Cart Quantity Controls */
+.kiosk__cart-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.kiosk__cart-qty-controls {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kiosk__cart-qty-btn {
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kiosk__cart-qty-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.15);
+}
+
+.kiosk__cart-qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.kiosk__cart-qty-val {
+  min-width: 28px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+
