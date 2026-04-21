@@ -33,15 +33,47 @@ function MenuPanel() {
   const [items, setItems] = useState([])
   const [sel, setSel] = useState(null)
   const [name, setName] = useState(''), [cat, setCat] = useState(''), [price, setPrice] = useState('')
+  
+  // Ingredients state
+  const [inventory, setInventory] = useState([])
+  const [ingredients, setIngredients] = useState([])
+  const [ingSelection, setIngSelection] = useState('new')
+  const [ingName, setIngName] = useState('')
+  const [ingAmount, setIngAmount] = useState('')
+  const [ingUnit, setIngUnit] = useState('')
 
-  const load = () => fetch(`${API}/menu`).then(r => r.json()).then(data => setItems(data))
+  const load = () => {
+    fetch(`${API}/menu`).then(r => r.json()).then(data => setItems(data))
+    fetch(`${API}/inventory`).then(r => r.json()).then(setInventory)
+  }
   useEffect(() => { load() }, [])
+
+  const handleAddIngredient = () => {
+    if (!ingAmount || !ingUnit) {
+      alert("Amount and Unit are required for the ingredient."); return;
+    }
+    let newIng = {};
+    if (ingSelection === 'new') {
+      if (!ingName) { alert("Ingredient name is required."); return; }
+      newIng = { isNew: true, name: ingName, amount: parseFloat(ingAmount), unit: ingUnit };
+    } else {
+      const invItem = inventory.find(i => i.inventory_item_id === parseInt(ingSelection));
+      if (!invItem) return;
+      newIng = { isNew: false, inventoryId: invItem.inventory_item_id, name: invItem.item_name, amount: parseFloat(ingAmount), unit: ingUnit };
+    }
+    setIngredients([...ingredients, newIng]);
+    setIngName(''); setIngAmount(''); setIngUnit(''); setIngSelection('new');
+  }
+
+  const removeIngredient = (idx) => {
+    setIngredients(ingredients.filter((_, i) => i !== idx));
+  }
 
   const addItem = async () => {
     if (!name || !cat || !price) { alert('Name, Category and Price are required.'); return }
     await fetch(`${API}/menu`, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, category: cat, price: parseFloat(price) }) })
-    setName(''); setCat(''); setPrice(''); setSel(null); load()
+      body: JSON.stringify({ name, category: cat, price: parseFloat(price), ingredients }) })
+    setName(''); setCat(''); setPrice(''); setIngredients([]); setSel(null); load()
     alert(`'${name}' added to Menu!`)
   }
   const updatePrice = async () => {
@@ -65,13 +97,58 @@ function MenuPanel() {
         rows={items.map(i => [i.menu_item_id, i.item_name, i.category, `$${parseFloat(i.price).toFixed(2)}`])}
         selectedRow={sel} onSelect={setSel}
       />
-      <div className="mgr-form">
-        <label>Name:</label><input value={name} onChange={e=>setName(e.target.value)} />
-        <label>Category:</label><input value={cat} onChange={e=>setCat(e.target.value)} />
-        <label>Price: $</label><input value={price} onChange={e=>setPrice(e.target.value)} style={{width:70}} />
-        <button onClick={addItem}>Add New Item</button>
-        <button onClick={updatePrice}>Update Selected Price</button>
-        <button className="mgr-btn--red" onClick={removeItem}>Remove Selected Item</button>
+      <div className="mgr-form-split">
+        <div className="mgr-form-section">
+          <h3>Menu Item Details</h3>
+          <div className="mgr-form-row">
+            <label>Name:</label><input value={name} onChange={e=>setName(e.target.value)} />
+          </div>
+          <div className="mgr-form-row">
+            <label>Category:</label><input value={cat} onChange={e=>setCat(e.target.value)} />
+          </div>
+          <div className="mgr-form-row">
+            <label>Price: $</label><input type="number" min="0" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} style={{width:80}} />
+          </div>
+          <div className="mgr-form-actions">
+            <button onClick={addItem}>Add New Drink</button>
+            <button onClick={updatePrice} className="mgr-btn--alt">Update Price</button>
+            <button className="mgr-btn--red" onClick={removeItem}>Remove Item</button>
+          </div>
+        </div>
+        
+        <div className="mgr-form-section mgr-ingredients-builder">
+          <h3>Recipe Builder <span>(For New Drinks)</span></h3>
+          <div className="mgr-form-row">
+            <select value={ingSelection} onChange={e=>setIngSelection(e.target.value)}>
+              <option value="new">-- Create New Ingredient --</option>
+              {inventory.map(i => <option key={i.inventory_item_id} value={i.inventory_item_id}>{i.item_name}</option>)}
+            </select>
+          </div>
+          {ingSelection === 'new' && (
+            <div className="mgr-form-row">
+              <label>Name:</label><input value={ingName} onChange={e=>setIngName(e.target.value)} placeholder="e.g. Matcha Powder" />
+            </div>
+          )}
+          <div className="mgr-form-row mgr-form-row-compact">
+            <label>Amount:</label><input type="number" min="0" step="0.1" value={ingAmount} onChange={e=>setIngAmount(e.target.value)} style={{width:60}} />
+            <label>Unit:</label><input value={ingUnit} onChange={e=>setIngUnit(e.target.value)} style={{width:60}} placeholder="g, ml" />
+            <button type="button" onClick={handleAddIngredient} className="mgr-btn-small">Add</button>
+          </div>
+          
+          {ingredients.length > 0 && (
+            <div className="mgr-ingredients-list">
+              <h4>Included Ingredients:</h4>
+              <ul>
+                {ingredients.map((ing, idx) => (
+                  <li key={idx}>
+                    <span className="ing-info">{ing.amount} {ing.unit} {ing.name} {ing.isNew && <span className="mgr-badge">NEW</span>}</span>
+                    <button className="mgr-btn-tiny mgr-btn--red" onClick={() => removeIngredient(idx)}>✕</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

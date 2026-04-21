@@ -5,21 +5,50 @@ const pool = require('../db');
 // GET /api/menu/items — full menu list for manager table
 // (reuse existing GET /api/menu for the list)
 
-// POST /api/menu — add new menu item + recipe
+// POST /api/menu — add new menu item + recipe + ingredients
 router.post('/', async (req, res) => {
   const client = await pool.connect();
   try {
-    const { name, category, price } = req.body;
+    const { name, category, price, ingredients } = req.body;
     await client.query('BEGIN');
+    
     const idRes = await client.query("SELECT COALESCE(MAX(menu_item_id),0)+1 AS next_id FROM menu");
     const nextId = idRes.rows[0].next_id;
+    
     await client.query(
       'INSERT INTO menu (menu_item_id, item_name, category, price, cost_basis, active_flag) VALUES ($1,$2,$3,$4,0,true)',
       [nextId, name, category, price]
     );
+
     const recIdRes = await client.query("SELECT COALESCE(MAX(recipe_id),0)+1 AS next_id FROM recipe");
     const recId = recIdRes.rows[0].next_id;
+    
     await client.query('INSERT INTO recipe (recipe_id, menu_item_id, notes) VALUES ($1,$2,$3)', [recId, nextId, 'Standard prep']);
+
+    // Handle Ingredients
+    if (ingredients && ingredients.length > 0) {
+      for (const ing of ingredients) {
+        let invId = ing.inventoryId;
+        
+        // If it's a completely new ingredient, create it in inventory first
+        if (ing.isNew) {
+          const invIdRes = await client.query("SELECT COALESCE(MAX(inventory_item_id),0)+1 AS next_id FROM inventory");
+          invId = invIdRes.rows[0].next_id;
+          
+          await client.query(
+            'INSERT INTO inventory (inventory_item_id, item_name, current_quantity, minimum_amount, unit, last_updated) VALUES ($1,$2,0,0,$3,NOW())',
+            [invId, ing.name, ing.unit]
+          );
+        }
+
+        // Link recipe to inventory
+        await client.query(
+          'INSERT INTO recipe_ingredient (recipe_id, inventory_item_id, amount_required, unit) VALUES ($1,$2,$3,$4)',
+          [recId, invId, ing.amount, ing.unit]
+        );
+      }
+    }
+
     await client.query('COMMIT');
     res.json({ success: true, menuItemId: nextId });
   } catch (err) {
