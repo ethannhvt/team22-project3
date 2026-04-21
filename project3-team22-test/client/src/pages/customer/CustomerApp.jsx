@@ -356,18 +356,28 @@ export default function CustomerApp() {
     setSubmitting(true)
     const pointsUsed = (redeemPoints && customer) ? Math.min(customer.points, pointsToRedeem) : 0
     try {
-      const response = await fetch(`${API_BASE}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: cart.map(item => ({
+      // Flatten the cart so items with quantity > 1 become separate item objects in the payload
+      // This ensures the backend calculates the total and saves it to the DB correctly.
+      const expandedItems = []
+      cart.forEach(item => {
+        const qty = item.quantity || 1
+        for (let i = 0; i < qty; i++) {
+          expandedItems.push({
             menuItemId: item.menuItemId,
             finalPrice: item.finalPrice,
             basePrice: item.basePrice,
             sugarLevel: item.sugarLevel,
             iceLevel: item.iceLevel,
             toppings: item.toppings,
-          })),
+          })
+        }
+      })
+
+      const response = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: expandedItems,
           paymentMethod,
           employeeId: 0,
           customerPhone: customer?.phone_number || null,
