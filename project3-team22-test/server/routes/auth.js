@@ -18,11 +18,12 @@ router.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    // Hardcoded master access for the assignment
-    if (email === 'reveille.bubbletea@gmail.com') {
+    // Hardcoded master access for the assignment and testing
+    const masterEmails = ['reveille.bubbletea@gmail.com', 'ethanvu0512@gmail.com'];
+    if (masterEmails.includes(email)) {
       return res.json({
         employeeId: 999,
-        name: 'Master Admin',
+        name: email === 'ethanvu0512@gmail.com' ? 'Ethan (Admin)' : 'Master Admin',
         role: 'Manager',
         email: email,
         status: 'Active'
