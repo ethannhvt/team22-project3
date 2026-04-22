@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import './Manager.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -525,35 +526,42 @@ export default function ManagerApp() {
   const [loginError, setLoginError] = useState('')
   const [activePanel, setActivePanel] = useState('dashboard')
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+  const handleGoogleLogin = async (credentialResponse) => {
     setLoginError('')
-    const res = await fetch(`${API}/auth/login`, {
+    const res = await fetch(`${API}/auth/google`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeId: loginId }),
+      body: JSON.stringify({ credential: credentialResponse.credential }),
     })
     const data = await res.json()
-    if (!res.ok) { setLoginError(data.error || 'Login failed'); return }
+    if (!res.ok) { setLoginError(data.error || 'Google Login failed'); return }
     if (data.role.toLowerCase() !== 'manager') {
-      setLoginError('Only managers can access this view.')
+      setLoginError('Unauthorized: Only managers can access this view.')
       return
     }
     setEmployee(data)
   }
 
-  const handleLogout = () => { setEmployee(null); setLoginId(''); setLoginError('') }
+  const handleLogout = () => { setEmployee(null); setLoginError('') }
 
   if (!employee) {
     return (
-      <div className="cashier-login">
-        <h1 className="cashier-login__title">DRAGON BOBA — Manager</h1>
-        <form className="cashier-login__form" onSubmit={handleLogin}>
-          <label>Employee ID:</label>
-          <input type="text" value={loginId} onChange={e=>setLoginId(e.target.value)} autoFocus />
-          {loginError && <p className="cashier-login__error">{loginError}</p>}
-          <button type="submit">Login</button>
-        </form>
-      </div>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <div className="cashier-login">
+          <h1 className="cashier-login__title">DRAGON BOBA — Manager</h1>
+          <div className="cashier-login__form" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
+            <p style={{ color: '#fff', marginBottom: '20px', textAlign: 'center' }}>
+              Please sign in with your authorized Google account.
+            </p>
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setLoginError('Google Login Failed')}
+              theme="filled_blue"
+              size="large"
+            />
+            {loginError && <p className="cashier-login__error" style={{ marginTop: '15px' }}>{loginError}</p>}
+          </div>
+        </div>
+      </GoogleOAuthProvider>
     )
   }
 
