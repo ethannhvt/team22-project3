@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const pool = require('../db');
 
 // POST /api/chat
@@ -8,11 +8,11 @@ router.post('/', async (req, res) => {
   try {
     const { message, history } = req.body;
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY is missing from the environment.' });
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: 'GROQ_API_KEY is missing from the environment.' });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     // Use the live database menu to define the AI's personality
     const menuRes = await pool.query('SELECT item_name, price, category FROM menu');
@@ -26,36 +26,33 @@ ${menuText}
 
 Never hallucinate items not on this list. Only answer questions related to boba, our location, or our menu. If they ask a wild question, gently pivot back to bubble tea.`;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview",
-      systemInstruction: systemPrompt
-    });
-
-    // Map conversation array to Gemini format, filtering out any leading model messages
-    // (Gemini requires history to always start with 'user')
-    let formattedHistory = (history || [])
+    // Map conversation history to OpenAI-compatible format
+    const formattedHistory = (history || [])
       .filter(msg => msg.role === 'user' || msg.role === 'assistant')
       .map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
+        role: msg.role,
+        content: msg.content,
       }));
 
-    // Drop any leading 'model' messages — Gemini will reject them
-    while (formattedHistory.length > 0 && formattedHistory[0].role === 'model') {
-      formattedHistory.shift();
-    }
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...formattedHistory,
+      { role: 'user', content: message },
+    ];
 
-    // Initialize chat session with history
-    const chat = model.startChat({
-      history: formattedHistory
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: 256,
+      temperature: 0.7,
     });
 
-    const result = await chat.sendMessage(message);
+    const reply = completion.choices[0]?.message?.content || "Sorry, I didn't catch that!";
+    res.json({ reply });
 
-    res.json({ reply: result.response.text() });
   } catch (error) {
-    console.error('[Gemini Error]:', error);
-    res.status(500).json({ error: 'Failed to communicate with the Dragon AI Assistant. Verify the API Key.' });
+    console.error('[Groq Error]:', error);
+    res.status(500).json({ error: 'Failed to communicate with the Dragon AI Assistant.' });
   }
 });
 
